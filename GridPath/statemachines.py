@@ -1,6 +1,7 @@
 __author__ = 'tekt'
 import isectutils
 import tekt
+import random
 
 class State:
 	def __init__(self, props):
@@ -79,15 +80,27 @@ class StateMachine:
 		if state is None:
 			state = self.getState(name, check=check)
 		self.current = state
+		print('state set to "%s"' % (state.name,))
 		return state
 
 	def getConnections(self):
 		if self.current is None:
 			return []
-		return self.current.connections
+		return list(self.current.connections.values())
 
 	def getConnectionTargetNames(self):
 		return [c.target.name for c in self.getConnections()]
+
+	def pickRandomConnection(self):
+		conns = self.getConnections()
+		if len(conns) == 0:
+			print('no connections found for the current state')
+			return None
+		nextConn = random.choice(conns)
+		if nextConn is None:
+			return None
+		self.setCurrent(state=nextConn.target)
+		return nextConn
 
 	def __repr__(self):
 		return 'StateMachine( current: %s )' % (self.current,)
