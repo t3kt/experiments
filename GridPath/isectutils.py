@@ -23,16 +23,21 @@ def buildIntersectionTable(dat, grp, scaling):
 				obj.path
 			])
 
+neighborOffsets = (
+	(-1, 0, 0),
+	(1, 0, 0),
+	(0, -1, 0),
+	(0, 1, 0),
+	(0, 0, -1),
+	(0, 0, 1)
+)
+
 def findNeighbors(inters, i):
 	ix, iy, iz = inters[i, "gridx"], inters[i, "gridy"], inters[i, "gridz"]
-	for nx in (-1, 0, 1):
-		for ny in (-1, 0, 1):
-			for nz in (-1, 0, 1):
-				if nx == 0 and ny == 0 and nz == 0:
-					continue
-				ni = findIntersection(inters, (ix + nx, iy + ny, iz + nz))
-				if ni is not None:
-					yield ni
+	for nx, ny, nz in neighborOffsets:
+		ni = findIntersection(inters, (ix + nx, iy + ny, iz + nz))
+		if ni is not None:
+			yield ni
 
 def findIntersection(inters, pos):
 	for i in range(1, inters.numRows):

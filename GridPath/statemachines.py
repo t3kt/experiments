@@ -1,7 +1,7 @@
 __author__ = 'tekt'
-import isectutils
 import tekt
 import random
+import json
 
 class State:
 	def __init__(self, props):
@@ -20,6 +20,11 @@ class State:
 
 	def __repr__(self):
 		return "State(%s)" % (self.name,)
+
+	def toJsonDict(self):
+		d = dict(self.props)
+		d['connections'] = list(self.connections.keys())
+		return d
 
 class Connection:
 	def __init__(self, source, target, props):
@@ -64,7 +69,6 @@ class StateMachine:
 		self.current = None
 		if startName is not None:
 			self.setCurrent(name=startName)
-		self.callbacks = {}
 
 	def getState(self, name, check=False):
 		state = self.states[name]
@@ -105,6 +109,14 @@ class StateMachine:
 	def __repr__(self):
 		return 'StateMachine( current: %s )' % (self.current,)
 
-	def setListeners(self, callbacks):
-		self.callbacks = callbacks
+	def toJsonDict(self):
+		d = {}
+		d['current'] = self.current.name if self.current is not None else None,
+		d['states'] = {state.name: state.toJsonDict() for state in self.states.values()}
+		return d
+
+	def toJson(self):
+		d = self.toJsonDict()
+		return json.dumps(d, sort_keys=True, indent=4)
+
 
