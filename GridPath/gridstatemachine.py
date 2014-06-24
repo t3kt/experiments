@@ -63,11 +63,8 @@ def buildStateDumpTable(dat):
 		tekt.appendDictRow(dat, state.props)
 
 def buildPointDisplayTable(dat, currentColor, availableColor, inactiveColor):
-	currentColor = (0, 1, 0)
-	availableColor = (0, .5, .5)
-	inactiveColor = (0, 0, 0)
 	dat.clear()
-	dat.appendRow(['name','available', 'current', 'rawx', 'rawy', 'rawz', 'r', 'g', 'b'])
+	dat.appendRow(['name','available', 'current', 'rawx', 'rawy', 'rawz', 'r', 'g', 'b', 'a'])
 	sm = get()
 	if sm is None or sm.current is None:
 		return
@@ -87,4 +84,5 @@ def buildPointDisplayTable(dat, currentColor, availableColor, inactiveColor):
 		props['r'] = color[0]
 		props['g'] = color[1]
 		props['b'] = color[2]
+		props['a'] = color[3]
 		tekt.appendDictRow(dat, props)
