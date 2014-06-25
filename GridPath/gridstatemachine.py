@@ -93,3 +93,14 @@ def buildPointDisplayTable(dat, currentColor, availableColor, inactiveColor):
 		props['b'] = color[2]
 		props['a'] = color[3]
 		tekt.appendDictRow(dat, props)
+
+def buildConnectionDisplayTable(dat):
+	dat.clear()
+	dat.appendRow(['srcx', 'srcy', 'srcz', 'tgtx', 'tgty', 'tgtz'])
+	sm = get()
+	if sm is None or sm.current is None:
+		return
+	srcpos = (sm.current.props['rawx'], sm.current.props['rawy'], sm.current.props['rawz'])
+	for conn in sm.current.connections.values():
+		targetprops = conn.target.props
+		dat.appendRow(srcpos + (targetprops['rawx'], targetprops['rawy'], targetprops['rawz']))

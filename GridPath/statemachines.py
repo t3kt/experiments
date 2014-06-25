@@ -110,10 +110,9 @@ class StateMachine:
 		return 'StateMachine( current: %s )' % (self.current,)
 
 	def toJsonDict(self):
-		d = {}
-		d['current'] = self.current.name if self.current is not None else None,
-		d['states'] = {state.name: state.toJsonDict() for state in self.states.values()}
-		return d
+		return {
+			'current': (self.current.name if self.current is not None else None,),
+			'states': {state.name: state.toJsonDict() for state in self.states.values()}}
 
 	def toJson(self):
 		d = self.toJsonDict()
