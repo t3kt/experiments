@@ -1,6 +1,6 @@
 //Maya ASCII 2014 scene
 //Name: pathexporttest.ma
-//Last modified: Fri, Jun 27, 2014 02:06:00 PM
+//Last modified: Fri, Jun 27, 2014 02:17:02 PM
 //Codeset: 1252
 requires maya "2014";
 currentUnit -l centimeter -a degree -t film;
@@ -11,12 +11,12 @@ fileInfo "cutIdentifier" "201307170459-880822";
 fileInfo "osv" "Microsoft Windows 7 Ultimate Edition, 64-bit Windows 7 Service Pack 1 (Build 7601)\n";
 createNode transform -s -n "persp";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" -200.22996573835613 124.44581754885922 65.67566238018486 ;
-	setAttr ".r" -type "double3" -29.721846625262508 284.60000000000502 -1.2617775931316854e-014 ;
+	setAttr ".t" -type "double3" -27.475485028307496 71.354569119156338 88.700876633781007 ;
+	setAttr ".r" -type "double3" -35.721846625272846 359.79999999997369 -8.1999174948516139e-016 ;
 createNode camera -s -n "perspShape" -p "persp";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 205.84505920874719;
+	setAttr ".coi" 83.864985717802725;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -62,44 +62,6 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".man" -type "string" "side_mask";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
-createNode transform -n "pCube1";
-	setAttr ".v" no;
-	setAttr ".s" -type "double3" 10 10 10 ;
-	setAttr ".smd" 7;
-createNode mesh -n "pCubeShape1" -p "pCube1";
-	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
-createNode transform -n "curve1";
-	setAttr ".v" no;
-createNode nurbsCurve -n "curveShape1" -p "curve1";
-	setAttr -k off ".v";
-	setAttr ".cc" -type "nurbsCurve" 
-		1 4 0 no 3
-		5 0 1 2 3 4
-		5
-		0 0 0
-		0 0 20
-		20 0 20
-		20 0 40
-		20 20 40
-		;
-createNode transform -n "positionMarker1" -p "curveShape1";
-createNode positionMarker -n "positionMarkerShape1" -p "positionMarker1";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".t" 1;
-createNode transform -n "positionMarker2" -p "curveShape1";
-createNode positionMarker -n "positionMarkerShape2" -p "positionMarker2";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".lp" -type "double3" 1 0 0 ;
-	setAttr ".t" 24;
 createNode transform -n "locator2";
 	setAttr ".smd" 7;
 createNode locator -n "locatorShape2" -p "locator2";
@@ -149,65 +111,9 @@ createNode positionMarker -n "positionMarkerShape7" -p "positionMarker7";
 	setAttr ".uwo" yes;
 	setAttr ".lp" -type "double3" 80.000001 0 0 ;
 	setAttr ".t" 7;
-createNode transform -n "pCube2";
-	setAttr ".r" -type "double3" -18.530382780603361 16.855552476147221 -49.137773038166898 ;
-	setAttr -av ".rx";
-	setAttr ".s" -type "double3" 4.4176874946294715 4.4176874946294715 4.4176874946294715 ;
-	setAttr ".smd" 7;
-createNode mesh -n "pCubeShape2" -p "pCube2";
+createNode transform -n "locator3";
+createNode locator -n "locatorShape3" -p "locator3";
 	setAttr -k off ".v";
-	setAttr ".vir" yes;
-	setAttr ".vif" yes;
-	setAttr ".uvst[0].uvsn" -type "string" "map1";
-	setAttr ".cuvs" -type "string" "map1";
-	setAttr ".dcc" -type "string" "Ambient+Diffuse";
-	setAttr ".covm[0]"  0 1 1;
-	setAttr ".cdvm[0]"  0 1 1;
-createNode transform -n "curve3";
-createNode nurbsCurve -n "curveShape3" -p "curve3";
-	setAttr -k off ".v";
-	setAttr ".cc" -type "nurbsCurve" 
-		3 4 0 no 3
-		9 0 0 0 20 40 60 80.000000999999997 80.000000999999997 80.000000999999997
-		
-		7
-		1.2802800000000001e-006 -6.3372299999999996e-006 -6.2581799999999999e-006
-		-6.6097640000000002 -0.28166099999999999 -0.27814800000000001
-		-26.732776999999999 -7.9557200000000003 2.1801170000000001
-		-16.520659999999999 28.267552999999999 -7.2131679999999996
-		-27.184581000000001 14.885539 26.672588000000001
-		-5.555517 26.422013 22.572728999999999
-		-1.23816e-006 20 20
-		;
-createNode transform -n "positionMarker8" -p "curveShape3";
-createNode positionMarker -n "positionMarkerShape8" -p "positionMarker8";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".t" 1;
-createNode transform -n "positionMarker9" -p "curveShape3";
-createNode positionMarker -n "positionMarkerShape9" -p "positionMarker9";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".lp" -type "double3" 20 0 0 ;
-	setAttr ".t" 2;
-createNode transform -n "positionMarker10" -p "curveShape3";
-createNode positionMarker -n "positionMarkerShape10" -p "positionMarker10";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".lp" -type "double3" 40 0 0 ;
-	setAttr ".t" 3;
-createNode transform -n "positionMarker11" -p "curveShape3";
-createNode positionMarker -n "positionMarkerShape11" -p "positionMarker11";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".lp" -type "double3" 60 0 0 ;
-	setAttr ".t" 4;
-createNode transform -n "positionMarker12" -p "curveShape3";
-createNode positionMarker -n "positionMarkerShape12" -p "positionMarker12";
-	setAttr -k off ".v";
-	setAttr ".uwo" yes;
-	setAttr ".lp" -type "double3" 80.000001 0 0 ;
-	setAttr ".t" 5;
 createNode lightLinker -s -n "lightLinker1";
 	setAttr -s 2 ".lnk";
 	setAttr -s 2 ".slnk";
@@ -216,8 +122,6 @@ createNode displayLayer -n "defaultLayer";
 createNode renderLayerManager -n "renderLayerManager";
 createNode renderLayer -n "defaultRenderLayer";
 	setAttr ".g" yes;
-createNode polyCube -n "polyCube1";
-	setAttr ".cuv" 4;
 createNode hyperGraphInfo -n "nodeEditorPanel2Info";
 createNode hyperView -n "hyperView1";
 	setAttr ".vl" -type "double2" -336.90476190476193 -386.90476190476198 ;
@@ -237,20 +141,6 @@ createNode hyperLayout -n "hyperLayout1";
 	setAttr ".hyp[3].y" 163.09524536132812;
 	setAttr ".hyp[3].nvs" 1920;
 	setAttr ".anf" yes;
-createNode motionPath -n "motionPath1";
-	setAttr -s 2 ".pmt";
-	setAttr -s 2 ".pmt";
-	setAttr ".f" yes;
-	setAttr ".fa" 0;
-	setAttr ".ua" 1;
-	setAttr ".fm" yes;
-createNode animCurveTL -n "motionPath1_uValue";
-	setAttr ".tan" 18;
-	setAttr ".wgt" no;
-	setAttr -s 2 ".ktv[0:1]"  1 0 24 1;
-createNode addDoubleLinear -n "addDoubleLinear1";
-createNode addDoubleLinear -n "addDoubleLinear2";
-createNode addDoubleLinear -n "addDoubleLinear3";
 createNode script -n "uiConfigurationScriptNode";
 	setAttr ".b" -type "string" (
 		"// Maya Mel UI Configuration File.\n//\n//  This script is machine generated.  Edit at your own risk.\n//\n//\n\nglobal string $gMainPane;\nif (`paneLayout -exists $gMainPane`) {\n\n\tglobal int $gUseScenePanelConfig;\n\tint    $useSceneConfig = $gUseScenePanelConfig;\n\tint    $menusOkayInPanels = `optionVar -q allowMenusInPanels`;\tint    $nVisPanes = `paneLayout -q -nvp $gMainPane`;\n\tint    $nPanes = 0;\n\tstring $editorName;\n\tstring $panelName;\n\tstring $itemFilterName;\n\tstring $panelConfig;\n\n\t//\n\t//  get current state of the UI\n\t//\n\tsceneUIReplacement -update $gMainPane;\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Top View\")) `;\n\tif (\"\" == $panelName) {\n\t\tif ($useSceneConfig) {\n\t\t\t$panelName = `modelPanel -unParent -l (localizedPanelLabel(\"Top View\")) -mbv $menusOkayInPanels `;\n\t\t\t$editorName = $panelName;\n            modelEditor -e \n                -camera \"top\" \n                -useInteractiveMode 0\n                -displayLights \"default\" \n                -displayAppearance \"wireframe\" \n"
@@ -324,7 +214,6 @@ createNode script -n "sceneConfigurationScriptNode";
 	setAttr ".st" 6;
 createNode motionPath -n "motionPath2";
 	setAttr -s 5 ".pmt";
-	setAttr ".f" yes;
 	setAttr ".fa" 0;
 	setAttr ".ua" 1;
 createNode animCurveTL -n "motionPath2_uValue";
@@ -335,28 +224,27 @@ createNode animCurveTL -n "motionPath2_uValue";
 createNode addDoubleLinear -n "addDoubleLinear4";
 createNode addDoubleLinear -n "addDoubleLinear5";
 createNode addDoubleLinear -n "addDoubleLinear6";
-createNode polyCube -n "polyCube2";
-	setAttr ".cuv" 4;
-createNode motionPath -n "motionPath3";
-	setAttr -s 5 ".pmt";
-	setAttr -s 5 ".pmt";
-	setAttr ".f" yes;
-	setAttr ".fa" 0;
-	setAttr ".ua" 1;
-createNode animCurveTL -n "motionPath3_uValue";
+createNode animCurveTL -n "locator3_translateX";
 	setAttr ".tan" 18;
 	setAttr ".wgt" no;
-	setAttr -s 5 ".ktv[0:4]"  1 0 2 20 3 40 4 60 5 80.000001;
-createNode addDoubleLinear -n "addDoubleLinear7";
-createNode addDoubleLinear -n "addDoubleLinear8";
-createNode addDoubleLinear -n "addDoubleLinear9";
+	setAttr -s 3 ".ktv[0:2]"  1 0 2 -20 5 0;
+	setAttr -s 3 ".kot[0:2]"  5 5 5;
+createNode animCurveTL -n "locator3_translateY";
+	setAttr ".tan" 18;
+	setAttr ".wgt" no;
+	setAttr -s 2 ".ktv[0:1]"  1 0 3 20;
+	setAttr -s 2 ".kot[0:1]"  5 5;
+createNode animCurveTL -n "locator3_translateZ";
+	setAttr ".tan" 18;
+	setAttr ".wgt" no;
+	setAttr -s 2 ".ktv[0:1]"  1 0 4 20;
+	setAttr -s 2 ".kot[0:1]"  5 5;
 select -ne :time1;
-	setAttr ".o" 5;
-	setAttr ".unw" 5;
+	setAttr ".o" 6;
+	setAttr ".unw" 6;
 select -ne :renderPartition;
 	setAttr -s 2 ".st";
 select -ne :initialShadingGroup;
-	setAttr -s 2 ".dsm";
 	setAttr ".ro" yes;
 select -ne :initialParticleSE;
 	setAttr ".ro" yes;
@@ -378,34 +266,14 @@ select -ne :hardwareRenderingGlobals;
 select -ne :defaultHardwareRenderGlobals;
 	setAttr ".fn" -type "string" "im";
 	setAttr ".res" -type "string" "ntsc_4d 646 485 1.333";
-select -ne :ikSystem;
-	setAttr -s 4 ".sol";
-connectAttr "addDoubleLinear1.o" "pCube1.tx";
-connectAttr "addDoubleLinear2.o" "pCube1.ty";
-connectAttr "addDoubleLinear3.o" "pCube1.tz";
-connectAttr "motionPath1.msg" "pCube1.sml";
-connectAttr "motionPath1.rx" "pCube1.rx";
-connectAttr "motionPath1.ry" "pCube1.ry";
-connectAttr "motionPath1.rz" "pCube1.rz";
-connectAttr "motionPath1.ro" "pCube1.ro";
-connectAttr "polyCube1.out" "pCubeShape1.i";
 connectAttr "addDoubleLinear4.o" "locator2.tx";
 connectAttr "addDoubleLinear5.o" "locator2.ty";
 connectAttr "addDoubleLinear6.o" "locator2.tz";
 connectAttr "motionPath2.msg" "locator2.sml";
-connectAttr "motionPath2.rx" "locator2.rx";
-connectAttr "motionPath2.ry" "locator2.ry";
-connectAttr "motionPath2.rz" "locator2.rz";
 connectAttr "motionPath2.ro" "locator2.ro";
-connectAttr "addDoubleLinear7.o" "pCube2.tx";
-connectAttr "addDoubleLinear8.o" "pCube2.ty";
-connectAttr "addDoubleLinear9.o" "pCube2.tz";
-connectAttr "motionPath3.msg" "pCube2.sml";
-connectAttr "motionPath3.rx" "pCube2.rx";
-connectAttr "motionPath3.ry" "pCube2.ry";
-connectAttr "motionPath3.rz" "pCube2.rz";
-connectAttr "motionPath3.ro" "pCube2.ro";
-connectAttr "polyCube2.out" "pCubeShape2.i";
+connectAttr "locator3_translateX.o" "locator3.tx";
+connectAttr "locator3_translateY.o" "locator3.ty";
+connectAttr "locator3_translateZ.o" "locator3.tz";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "shadowLink" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
@@ -417,16 +285,6 @@ connectAttr "hyperLayout1.msg" "hyperView1.hl";
 connectAttr "locatorShape2.msg" "hyperLayout1.hyp[0].dn";
 connectAttr "locator2.msg" "hyperLayout1.hyp[1].dn";
 connectAttr "curve2.msg" "hyperLayout1.hyp[3].dn";
-connectAttr "motionPath1_uValue.o" "motionPath1.u";
-connectAttr "curveShape1.ws" "motionPath1.gp";
-connectAttr "positionMarkerShape1.t" "motionPath1.pmt[0]";
-connectAttr "positionMarkerShape2.t" "motionPath1.pmt[1]";
-connectAttr "pCube1.tmrx" "addDoubleLinear1.i1";
-connectAttr "motionPath1.xc" "addDoubleLinear1.i2";
-connectAttr "pCube1.tmry" "addDoubleLinear2.i1";
-connectAttr "motionPath1.yc" "addDoubleLinear2.i2";
-connectAttr "pCube1.tmrz" "addDoubleLinear3.i1";
-connectAttr "motionPath1.zc" "addDoubleLinear3.i2";
 connectAttr "motionPath2_uValue.o" "motionPath2.u";
 connectAttr "curveShape2.ws" "motionPath2.gp";
 connectAttr "positionMarkerShape3.t" "motionPath2.pmt[0]";
@@ -440,20 +298,5 @@ connectAttr "locator2.tmry" "addDoubleLinear5.i1";
 connectAttr "motionPath2.yc" "addDoubleLinear5.i2";
 connectAttr "locator2.tmrz" "addDoubleLinear6.i1";
 connectAttr "motionPath2.zc" "addDoubleLinear6.i2";
-connectAttr "motionPath3_uValue.o" "motionPath3.u";
-connectAttr "curveShape3.ws" "motionPath3.gp";
-connectAttr "positionMarkerShape8.t" "motionPath3.pmt[0]";
-connectAttr "positionMarkerShape9.t" "motionPath3.pmt[1]";
-connectAttr "positionMarkerShape10.t" "motionPath3.pmt[2]";
-connectAttr "positionMarkerShape11.t" "motionPath3.pmt[3]";
-connectAttr "positionMarkerShape12.t" "motionPath3.pmt[4]";
-connectAttr "pCube2.tmrx" "addDoubleLinear7.i1";
-connectAttr "motionPath3.xc" "addDoubleLinear7.i2";
-connectAttr "pCube2.tmry" "addDoubleLinear8.i1";
-connectAttr "motionPath3.yc" "addDoubleLinear8.i2";
-connectAttr "pCube2.tmrz" "addDoubleLinear9.i1";
-connectAttr "motionPath3.zc" "addDoubleLinear9.i2";
-connectAttr "pCubeShape1.iog" ":initialShadingGroup.dsm" -na;
-connectAttr "pCubeShape2.iog" ":initialShadingGroup.dsm" -na;
 connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
 // End of pathexporttest.ma

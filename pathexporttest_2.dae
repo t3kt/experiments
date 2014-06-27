@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
-  <asset><contributor><author></author><authoring_tool>FBX COLLADA exporter</authoring_tool><comments></comments></contributor><created>2014-06-27T18:09:52Z</created><keywords></keywords><modified>2014-06-27T18:09:52Z</modified><revision></revision><subject></subject><title></title><unit meter="0.010000" name="centimeter"></unit><up_axis>Y_UP</up_axis></asset>
+  <asset><contributor><author></author><authoring_tool>FBX COLLADA exporter</authoring_tool><comments></comments></contributor><created>2014-06-27T18:15:36Z</created><keywords></keywords><modified>2014-06-27T18:15:36Z</modified><revision></revision><subject></subject><title></title><unit meter="0.010000" name="centimeter"></unit><up_axis>Y_UP</up_axis></asset>
   <library_animations>
     <animation id="locator2-anim" name="locator2"><animation><source id="locator2-Matrix-animation-input"><float_array id="locator2-Matrix-animation-input-array" count="48">
 
@@ -61,11 +61,22 @@ LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LIN
 LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR
 LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR LINEAR
 LINEAR</Name_array><technique_common><accessor source="#locator2-Interpolations-array" count="48"><param type="name"/></accessor></technique_common></source><sampler id="locator2-Matrix-animation-transform"><input semantic="INPUT" source="#locator2-Matrix-animation-input"/><input semantic="OUTPUT" source="#locator2-Matrix-animation-output-transform"/><input semantic="INTERPOLATION" source="#locator2-Interpolations"/></sampler><channel source="#locator2-Matrix-animation-transform" target="locator2/matrix"/></animation></animation>
+    <animation id="locator3-anim" name="locator3"><animation><source id="locator3-Matrix-animation-input"><float_array id="locator3-Matrix-animation-input-array" count="5">
+
+0.041667 0.083333 0.125000 0.166667 0.208333</float_array><technique_common><accessor source="#locator3-Matrix-animation-input-array" count="5"><param name="TIME" type="float"/></accessor></technique_common></source><source id="locator3-Matrix-animation-output-transform"><float_array id="locator3-Matrix-animation-output-transform-array" count="80">
+
+1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000
+1.000000 0.000000 0.000000 -20.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000
+1.000000 0.000000 0.000000 -20.000000 0.000000 1.000000 0.000000 20.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000
+1.000000 0.000000 0.000000 -20.000000 0.000000 1.000000 0.000000 20.000000 0.000000 0.000000 1.000000 20.000000 0.000000 0.000000 0.000000 1.000000
+1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 20.000000 0.000000 0.000000 1.000000 20.000000 0.000000 0.000000 0.000000 1.000000</float_array><technique_common><accessor source="#locator3-Matrix-animation-output-transform-array" count="5" stride="16"><param type="float4x4"/></accessor></technique_common></source><source id="locator3-Interpolations"><Name_array id="locator3-Interpolations-array" count="5">
+ LINEAR LINEAR LINEAR LINEAR LINEAR</Name_array><technique_common><accessor source="#locator3-Interpolations-array" count="5"><param type="name"/></accessor></technique_common></source><sampler id="locator3-Matrix-animation-transform"><input semantic="INPUT" source="#locator3-Matrix-animation-input"/><input semantic="OUTPUT" source="#locator3-Matrix-animation-output-transform"/><input semantic="INTERPOLATION" source="#locator3-Interpolations"/></sampler><channel source="#locator3-Matrix-animation-transform" target="locator3/matrix"/></animation></animation>
   </library_animations>
   <library_visual_scenes>
     <visual_scene id="pathexporttest_2" name="pathexporttest_2">
       <node name="locator2" id="locator2" sid="locator2"><matrix sid="matrix">-0.998212 -0.042498 0.042043 0.000001 -0.042536 0.999095 -0.000000 -0.000006 -0.042005 -0.001788 -0.999116 -0.000006 0.000000 0.000000 0.000000 1.000000</matrix><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
       <node name="curve2" id="curve2" sid="curve2"><matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
+      <node name="locator3" id="locator3" sid="locator3"><matrix sid="matrix">1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 1.000000</matrix><extra><technique profile="FCOLLADA"><visibility>1.000000</visibility></technique></extra></node>
       <extra><technique profile="MAX3D"><frame_rate>24.000000</frame_rate></technique><technique profile="FCOLLADA"><start_time>0.041667</start_time><end_time>2.000000</end_time></technique></extra>
     </visual_scene>
   </library_visual_scenes>
