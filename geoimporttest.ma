@@ -1,6 +1,6 @@
 //Maya ASCII 2014 scene
 //Name: geoimporttest.ma
-//Last modified: Wed, Jul 02, 2014 03:12:36 PM
+//Last modified: Wed, Jul 02, 2014 03:28:29 PM
 //Codeset: 1252
 requires maya "2014";
 currentUnit -l centimeter -a degree -t film;
@@ -77,6 +77,7 @@ createNode mesh -n "pCubeShape1" -p "pCube1";
 	setAttr ".cdvm[0]"  0 1 1;
 createNode transform -n "pCube2" -p "group1";
 	setAttr ".t" -type "double3" 23.505999725986442 23.20800411647469 106.53334609562599 ;
+	setAttr ".r" -type "double3" -41.232609964434211 -60.397127416546404 0 ;
 	setAttr ".s" -type "double3" 0.67644960447113323 0.67644960447113323 0.67644960447113323 ;
 createNode mesh -n "pCubeShape2" -p "pCube2";
 	setAttr -k off ".v";
@@ -90,6 +91,10 @@ createNode mesh -n "pCubeShape2" -p "pCube2";
 	setAttr ".dcc" -type "string" "Ambient+Diffuse";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
+	setAttr -s 8 ".pt[0:7]" -type "float3"  -5.2944036 1.9826194 -2.2621281 
+		48.114983 -18.017838 20.557985 -25.294857 9.4722824 -10.80768 28.114511 -10.528173 
+		12.012434 -48.114983 18.017838 -20.557985 5.2944036 -1.9826194 2.2621281 -28.114511 
+		10.528173 -12.012434 25.294857 -9.4722824 10.80768;
 	setAttr -s 8 ".vt[0:7]"  -18.99995804 -18.99995804 18.99995804 18.99995804 -18.99995804 18.99995804
 		 -18.99995804 18.99995804 18.99995804 18.99995804 18.99995804 18.99995804 -18.99995804 18.99995804 -18.99995804
 		 18.99995804 18.99995804 -18.99995804 -18.99995804 -18.99995804 -18.99995804 18.99995804 -18.99995804 -18.99995804;
@@ -112,8 +117,6 @@ createNode mesh -n "pCubeShape2" -p "pCube2";
 	setAttr ".cvd" -type "dataPolyComponent" Index_Data Vertex 0 ;
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 createNode transform -n "locator1";
-	setAttr ".t" -type "double3" 0 72.097103086773018 -13.362400259559053 ;
-	setAttr -av ".tz";
 createNode locator -n "locatorShape1" -p "locator1";
 	setAttr -k off ".v";
 createNode lightLinker -s -n "lightLinker1";
@@ -196,7 +199,7 @@ createNode script -n "sceneConfigurationScriptNode";
 createNode animCurveTL -n "locator1_translateX";
 	setAttr ".tan" 18;
 	setAttr ".wgt" no;
-	setAttr -s 4 ".ktv[0:3]"  1 0 5 0 10 0 15 0;
+	setAttr -s 4 ".ktv[0:3]"  1 0 5 0 10 88.706108308071904 15 0;
 createNode animCurveTL -n "locator1_translateY";
 	setAttr ".tan" 18;
 	setAttr ".wgt" no;
@@ -204,11 +207,11 @@ createNode animCurveTL -n "locator1_translateY";
 createNode animCurveTL -n "locator1_translateZ";
 	setAttr ".tan" 18;
 	setAttr ".wgt" no;
-	setAttr -s 4 ".ktv[0:3]"  1 0 5 81.308656829112792 10 81.308656829112792
+	setAttr -s 4 ".ktv[0:3]"  1 0 5 81.308656829112792 10 -35.73670601972762
 		 15 -13.362400259559053;
 select -ne :time1;
-	setAttr ".o" 15;
-	setAttr ".unw" 15;
+	setAttr ".o" 9;
+	setAttr ".unw" 9;
 select -ne :renderPartition;
 	setAttr -s 2 ".st";
 select -ne :initialShadingGroup;
