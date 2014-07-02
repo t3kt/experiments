@@ -1,6 +1,6 @@
 //Maya ASCII 2014 scene
 //Name: geoimporttest.ma
-//Last modified: Wed, Jul 02, 2014 02:50:04 PM
+//Last modified: Wed, Jul 02, 2014 03:12:36 PM
 //Codeset: 1252
 requires maya "2014";
 currentUnit -l centimeter -a degree -t film;
@@ -65,6 +65,7 @@ createNode camera -s -n "sideShape" -p "side";
 createNode transform -n "rootGRP";
 createNode transform -n "group1" -p "rootGRP";
 createNode transform -n "pCube1" -p "group1";
+	setAttr ".r" -type "double3" -61.323666904140573 22.086318519266069 -34.50687076650533 ;
 createNode mesh -n "pCubeShape1" -p "pCube1";
 	setAttr -k off ".v";
 	setAttr ".vir" yes;
@@ -75,7 +76,7 @@ createNode mesh -n "pCubeShape1" -p "pCube1";
 	setAttr ".covm[0]"  0 1 1;
 	setAttr ".cdvm[0]"  0 1 1;
 createNode transform -n "pCube2" -p "group1";
-	setAttr ".t" -type "double3" 0 23.20800411647469 56.373129382700427 ;
+	setAttr ".t" -type "double3" 23.505999725986442 23.20800411647469 106.53334609562599 ;
 	setAttr ".s" -type "double3" 0.67644960447113323 0.67644960447113323 0.67644960447113323 ;
 createNode mesh -n "pCubeShape2" -p "pCube2";
 	setAttr -k off ".v";
