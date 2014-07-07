@@ -28,7 +28,6 @@ def display(data, sock, chan=1):
 
 
 panel = connect('10.0.2.2')
-color = [0.1, 0.8, 0.9]
 
 
 def push_color(col, chan):
@@ -91,23 +90,20 @@ def getPixelCoord(block, light):
     return boffset[0] + loffset[0], boffset[1] + loffset[1]
 
 def sendImage(img, sock):
-    i = 0
     for b in range(numBlocks):
-        dataOut =[]
+        dataOut = []
         #print('block %s' % (b,))
         for l in range(lightsPerBlock):
             pos = getPixelCoord(b, l)
             pos = pos[0], img.height - pos[1]
             col = img.sample(x=pos[0], y=pos[1])
             #print('looking at pixel x=%s y=%s  color=%s %s %s' % (pos[0], pos[1], col[0], col[1], col[2]))
-            i += 1
             dataOut.append(col[0])
             dataOut.append(col[1])
             dataOut.append(col[2])
         #print('data before padding (len: %s): %s' %(len(dataOut), dataOut))
-        dataOut += (0.0, 0.0, 0.0) * (13)
-        #print('sending %s colors' % (i,))
-        display(dataOut, sock, b+1)
+        dataOut += (0.0, 0.0, 0.0) * 13
+        display(dataOut, sock, b + 1)
 
 
 def dumpTables():
