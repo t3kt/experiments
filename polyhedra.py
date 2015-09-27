@@ -1,4 +1,5 @@
-# See http://www.chiark.greenend.org.uk/~sgtatham/polyhedra/
+# Most of this code is take from:
+#   http://www.chiark.greenend.org.uk/~sgtatham/polyhedra/
 
 import math
 
@@ -65,8 +66,8 @@ class polyhedron:
 		self.flist.append(facename)
 		return facename
 
-	def face(self, *list):
-		return self.facelist(list)
+	def face(self, *vlist):
+		return self.facelist(vlist)
 
 
 	def output(self, file):
@@ -93,21 +94,26 @@ class polyhedron:
 				pt.x, pt.y, pt.z = v
 				pt.N = normals
 
+	def getBounds(self):
+		mins, maxs = [0, 0, 0], [0, 0, 0]
+		for pt in self.vertices.values():
+			for i in range(2):
+				if pt[i] < mins[i]:
+					mins[i] = pt[i]
+				if pt[i] > maxs[i]:
+					maxs[i] = pt[i]
+		return mins, maxs
 
-# def lettername(n):
-# 	chars = 1
-# 	while n >= 26 ** chars:
-# 		n = n - 26 ** chars
-# 		chars = chars + 1
-# 	s = ""
-# 	for i in range(chars):
-# 		k = n % 26
-# 		n = n / 26
-# 		if i == chars - 1:
-# 			s = chr(65 + k) + s
-# 		else:
-# 			s = chr(97 + k) + s
-# 	return s
+	def modifyVertices(self, fn):
+		for ptname in self.vertices.keys():
+			self.vertices[ptname] = fn(self.vertices[ptname])
+
+	def normalize(self):
+		mins, maxs = self.getBounds()
+		sizes = [abs(maxs[i] - mins[i]) for i in range(2)]
+		maxsize = max(sizes)
+		scale = 1 / maxsize
+		self.modifyVertices(lambda pt: (pt[0] * scale, pt[1] * scale, pt[2] * scale))
 
 
 def tetrahedron():
@@ -738,33 +744,34 @@ class rhombi:
 
 		return pout
 
-class output:
-	def __init__(self, fn):
-		self.fn = fn
 
-	def __call__(self, sop):
-		p = self.fn()
-		p.addToSOP(sop)
+# class output:
+# 	def __init__(self, fn):
+# 		self.fn = fn
+#
+# 	def __call__(self, sop):
+# 		p = self.fn()
+# 		p.addToSOP(sop)
 
 polyhedra = {
-	"tetrahedron": output(tetrahedron),
-	"cube": output(cube),
-	"octahedron": output(octahedron),
-	"dodecahedron": output(dodecahedron),
-	"icosahedron": output(icosahedron),
-	"cuboctahedron": output(truncate(cube, 0)),
-	"icosidodecahedron": output(truncate(dodecahedron, 0)),
-	"truncatedtetrahedron": output(truncate(tetrahedron, edgeratio(3, 6))),
-	"truncatedcube": output(truncate(cube, edgeratio(4, 8))),
-	"truncatedoctahedron": output(truncate(octahedron, edgeratio(3, 6))),
-	"truncateddodecahedron": output(truncate(dodecahedron, edgeratio(5, 10))),
-	"truncatedicosahedron": output(truncate(icosahedron, edgeratio(3, 6))),
-	"smallrhombicuboctahedron": output(rhombi(cube, 4, 3, 0)),
-	"greatrhombicuboctahedron": output(rhombi(cube, 4, 3, 1)),
-	"smallrhombicosidodecahedron": output(rhombi(dodecahedron, 5, 3, 0)),
-	"greatrhombicosidodecahedron": output(rhombi(dodecahedron, 5, 3, 1)),
-	"rhombicdodecahedron": output(dual(truncate(cube, 0))),
-	"rhombictriacontahedron": output(dual(truncate(dodecahedron, 0)))
+	"tetrahedron": tetrahedron,
+	"cube": cube,
+	"octahedron": octahedron,
+	"dodecahedron": dodecahedron,
+	"icosahedron": icosahedron,
+	"cuboctahedron": truncate(cube, 0),
+	"icosidodecahedron": truncate(dodecahedron, 0),
+	"truncatedtetrahedron": truncate(tetrahedron, edgeratio(3, 6)),
+	"truncatedcube": truncate(cube, edgeratio(4, 8)),
+	"truncatedoctahedron": truncate(octahedron, edgeratio(3, 6)),
+	"truncateddodecahedron": truncate(dodecahedron, edgeratio(5, 10)),
+	"truncatedicosahedron": truncate(icosahedron, edgeratio(3, 6)),
+	"smallrhombicuboctahedron": rhombi(cube, 4, 3, 0),
+	"greatrhombicuboctahedron": rhombi(cube, 4, 3, 1),
+	"smallrhombicosidodecahedron": rhombi(dodecahedron, 5, 3, 0),
+	"greatrhombicosidodecahedron": rhombi(dodecahedron, 5, 3, 1),
+	"rhombicdodecahedron": dual(truncate(cube, 0)),
+	"rhombictriacontahedron": dual(truncate(dodecahedron, 0))
 }
 
 typeNames = [
@@ -793,6 +800,9 @@ def getTypeNames():
 	# return list(polyhedra.keys())
 	return typeNames
 
-def addPolyhedronToSOP(name, sop):
+def addPolyhedronToSOP(name, sop, normalize=False):
 	generator = polyhedra[name]
-	generator(sop)
+	poly = generator()
+	if normalize:
+		poly.normalize()
+	poly.addToSOP(sop)
