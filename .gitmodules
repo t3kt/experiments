@@ -4,3 +4,6 @@
 [submodule "DistThresholdCHOP"]
 	path = DistThresholdCHOP
 	url = https://github.com/t3kt/DistThresholdCHOP.git
+[submodule "core"]
+	path = core
+	url = https://github.com/t3kt/tektcore.git
