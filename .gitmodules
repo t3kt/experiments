@@ -7,3 +7,6 @@
 [submodule "core"]
 	path = core
 	url = https://github.com/t3kt/tektcore.git
+[submodule "common"]
+	path = common
+	url = https://github.com/t3kt/tektcommon.git
