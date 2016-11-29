@@ -1,6 +1,9 @@
 import json
 if False:
-	from _stubs import *
+	try:
+		from _stubs import *
+	except ImportError:
+		from common.lib._stubs import *
 try:
 	import common_base as base
 except ImportError:
@@ -21,6 +24,14 @@ def GetActiveEditor():
 
 def _getTargetPane():
 	return GetActiveEditor()
+
+def OpenNetworkOf(path):
+	pane = _getTargetPane()
+	if not pane:
+		return
+	target = op(path)
+	newpane = ui.panes.createFloating(type=PaneType.NETWORKEDITOR)
+	newpane.owner = target
 
 def NavigateTo(path):
 	pane = _getTargetPane()
@@ -83,6 +94,7 @@ def _saveTox(comp):
 		return False
 	comp.save(toxfile)
 	ui.status = 'Saved TOX %s to %s' % (comp.path, toxfile)
+	print('Saved TOX %s to %s' % (comp.path, toxfile))
 	return True
 
 def SaveToxSelectedOrContext(ancestors=False):
@@ -175,6 +187,15 @@ def RemoveTags(tags):
 			o.tags -= tags
 		else:
 			o.tags.clear()
+
+def WipeAndReclone():
+	selected = _getSelected()
+	for o in selected:
+		if o.par.clone.eval():
+			print('wiping and recloning ' + o.path)
+			for x in o.ops('./*'):
+				x.destroy()
+			o.par.enablecloningpulse.pulse()
 
 def _getMiddle(vals):
 	low, high = min(vals), max(vals)
@@ -270,38 +291,13 @@ class ToolsExt(base.Extension):
 	def __init__(self, comp):
 		super().__init__(comp)
 
-	def PerformAction(self, cmd):
-		self._LogEvent('PerformAction(%r)' % cmd)
-		if cmd.startswith('Align'):
-			Align(cmd.replace('Align', ''))
-		elif cmd.startswith('Orderby'):
-			SetAlignOrderBy(cmd.replace('Orderby', ''))
-		elif cmd.startswith('Distribute'):
-			Distribute(cmd.replace('Distribute', ''))
-		elif cmd.startswith('Sort'):
-			SortByName(cmd.replace('Sort', ''))
-		elif cmd == 'Initselected':
-			InitSelectedOrContext()
-		elif cmd == 'Reloadcode':
-			patterns = self.comp.par.Codeops.eval().split(' ')
-			ReloadDATs(ops(*patterns))
-		elif cmd == 'Reloadconfig':
-			patterns = self.comp.par.Configops.eval().split(' ')
-			ReloadDATs(ops(*patterns))
-		elif cmd == 'Deletepars':
-			DestroyPars(self.comp.par.Parstodelete.eval().split(' '))
-		elif cmd == 'Addtags':
-			AddTags(self.comp.par.Tagstomodify.eval().split(' '))
-		elif cmd == 'Removetags':
-			RemoveTags(self.comp.par.Tagstomodify.eval().split(' '))
-		elif cmd == 'Copypaths':
-			CopySelectedPaths()
-		elif cmd == 'Savetox':
-			SaveToxSelectedOrContext()
-		elif cmd == 'Savetoxancestors':
-			SaveToxSelectedOrContext(ancestors=True)
-		else:
-			raise Exception('unrecognized action: ' + cmd)
+	def ReloadCode(self):
+		patterns = self.comp.par.Codeops.eval().split(' ')
+		ReloadDATs(ops(*patterns))
+
+	def ReloadConfig(self):
+		patterns = self.comp.par.Configops.eval().split(' ')
+		ReloadDATs(ops(*patterns))
 
 	def LoadLauncherSpecs(self, table):
 		jsonstr = self.comp.par.Launcherspecjson.eval()
@@ -360,20 +356,15 @@ class ToolsExt(base.Extension):
 		else:
 			raise Exception('tools.OnLaunchCellClick - unrecognized launch mode: %r' % (mode,))
 
-	def OnNavigatorButtonClick(self, button):
-		specs = self.comp.op('nav_specs')
-		i = button.digits
-		path = specs[i, 'path'].val
-		if not op(path):
-			raise Exception('tools.OnNavigatorButtonClick - path not found: %r' % (path,))
-		NavigateTo(path)
-
-	def OnNavigatorCellClick(self, i):
+	def OnNavigatorCellClick(self, i, mode):
 		specs = self.comp.op('nav_specs')
 		path = specs[i, 'path'].val
 		if not op(path):
 			raise Exception('tools.OnNavigatorCellClick - path not found: %r' % (path,))
-		NavigateTo(path)
+		if mode == 'nav':
+			NavigateTo(path)
+		elif mode == 'opennet':
+			OpenNetworkOf(path)
 
 def _FillTableFromJson(table, jsonstr, cols, defaults):
 	table.clear()
