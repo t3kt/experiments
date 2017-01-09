@@ -7,3 +7,7 @@
 [submodule "core"]
 	path = core
 	url = https://github.com/t3kt/tektcore.git
+[submodule "threshold"]
+	path = threshold
+	url = https://github.com/t3kt/threshold.git
+	branch = td-099
