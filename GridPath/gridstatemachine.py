@@ -1,5 +1,3 @@
-import tekt
-
 smachine = None
 
 
@@ -50,24 +48,28 @@ def buildCurrentStateTable(dat):
 	sm = get()
 	if sm is None or sm.current is None:
 		return
-	tekt.appendDictRow(dat, sm.current.props)
+	_AppendDictRow(dat, sm.current.props)
 
+def _AppendDictRow(dat, rowdict):
+	dat.appendRow([rowdict.get(name.val, '') for name in dat.row(0)])
 
 def buildCurrentConnectionsTable(dat):
 	dat.clear()
 	dat.appendRow(['name', 'gridx', 'gridy', 'gridz', 'rawx', 'rawy', 'rawz'])
 	sm = get()
-	if sm.current is not None:
+	if sm is not None and sm.current is not None:
 		for conn in sm.getConnections():
-			tekt.appendDictRow(dat, conn.target.props)
+			_AppendDictRow(dat, conn.target.props)
 
 
 def buildStateDumpTable(dat):
 	dat.clear()
 	dat.appendRow(['name', 'gridx', 'gridy', 'gridz', 'rawx', 'rawy', 'rawz'])
 	sm = get()
+	if sm is None:
+		return
 	for state in sm.states.values():
-		tekt.appendDictRow(dat, state.props)
+		_AppendDictRow(dat, state.props)
 
 
 def buildPointDisplayTable(dat, currentColor, availableColor, inactiveColor):
@@ -92,7 +94,7 @@ def buildPointDisplayTable(dat, currentColor, availableColor, inactiveColor):
 		props['g'] = color[1]
 		props['b'] = color[2]
 		props['a'] = color[3]
-		tekt.appendDictRow(dat, props)
+		_AppendDictRow(dat, props)
 
 def buildConnectionDisplayTable(dat):
 	dat.clear()

@@ -1,21 +1,14 @@
 __author__ = 'tekt'
-import tekt
 import random
 import json
 
 class State:
 	def __init__(self, props):
-		"""
-		:type props dict
-		"""
 		self.props = props
 		self.name = props['name']
 		self.connections = {}
 
 	def addConnection(self, conn):
-		"""
-		:type conn Connection
-		"""
 		self.connections[conn.target.name] = conn
 
 	def __repr__(self):
@@ -28,11 +21,6 @@ class State:
 
 class Connection:
 	def __init__(self, source, target, props):
-		"""
-		:type source State
-		:type target State
-		:type props dict
-		"""
 		self.source = source
 		self.target = target
 		self.props = props
@@ -42,10 +30,10 @@ class Connection:
 
 def loadTables(statetbl, conntbl):
 	states = {}
-	for srow in tekt.rowsToDicts(statetbl):
+	for srow in rowsToDicts(statetbl):
 		state = State(srow)
 		states[state.name] = state
-	for crow in tekt.rowsToDicts(conntbl):
+	for crow in rowsToDicts(conntbl):
 		source = states[crow['source']]
 		target = states[crow['target']]
 		if source is None:
@@ -58,10 +46,6 @@ def loadTables(statetbl, conntbl):
 
 class StateMachine:
 	def __init__(self, states=None, statetbl=None, conntbl=None, startName=None):
-		"""
-		:type states dict
-		:type startName str
-		"""
 		if states is None:
 			states = loadTables(statetbl, conntbl)
 		self.states = states
@@ -77,10 +61,6 @@ class StateMachine:
 		return state
 
 	def setCurrent(self, name=None, state=None, check=True):
-		"""
-		:type name str
-		:type state State
-		"""
 		if state is None:
 			state = self.getState(name, check=check)
 		self.current = state
@@ -119,3 +99,11 @@ class StateMachine:
 		return json.dumps(d, sort_keys=True, indent=4)
 
 
+def _tableLineToDict(names, vals):
+	return {names[i].val: vals[i].val for i in range(len(names))}
+
+def rowsToDicts(dat):
+	if dat.numRows < 2:
+		return []
+	names = dat.row(0)
+	return (_tableLineToDict(names, dat.row(i)) for i in range(1, dat.numRows))
