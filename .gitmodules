@@ -11,3 +11,6 @@
 	path = threshold
 	url = https://github.com/t3kt/threshold.git
 	branch = td-099
+[submodule "common"]
+	path = common
+	url = https://github.com/t3kt/tektcommon.git
