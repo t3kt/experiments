@@ -1,2 +1,4 @@
 *-output-*.*
 .idea
+*.dmp
+CrashAutoSave.toe
