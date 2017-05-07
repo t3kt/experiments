@@ -51,3 +51,31 @@ class Navigator(base.Extension):
 		self._indextrail.clear()
 		self._indextrail.appendRow(['index'])
 		self._indextrail.appendRow([0])
+
+class PathBuilder(base.Extension):
+	def __init__(self, comp):
+		super().__init__(comp)
+		self._connections = comp.op('./connections')
+
+	def _PathsFrom(self, fromindex):
+		# self._LogEvent('_PathsFrom(%d)' % fromindex)
+		nextpts = self._GetNextPoints(fromindex)
+		# self._LogEvent('_PathsFrom() -- next points: %r' % nextpts)
+		paths = []
+		for nextpt in nextpts:
+			subpaths = self._PathsFrom(nextpt)
+			if not subpaths:
+				paths.append([nextpt])
+			else:
+				for subpath in subpaths:
+					paths.append([nextpt] + subpath)
+		return paths
+
+	def _GetNextPoints(self, fromindex):
+		return [int(c) for c in self._connections.cells(str(fromindex), '*') if c.col == 1]
+
+	def BuildPaths(self, outdat):
+		outdat.clear()
+		paths = list(self._PathsFrom(0))
+		for path in paths:
+			outdat.appendCol([0] + path)
