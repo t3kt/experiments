@@ -52,6 +52,44 @@ class Navigator(base.Extension):
 		self._indextrail.appendRow(['index'])
 		self._indextrail.appendRow([0])
 
+class PathNavigator(base.Extension):
+	def __init__(self, comp):
+		super().__init__(comp)
+		self._timer = comp.op('./timer')
+		self._paths = comp.op('./paths')
+		self._currentpaths = comp.op('./current_path')
+
+	def Start(self):
+		self._timer.par.start.pulse()
+		self.Reset(hard=True)
+
+	@property
+	def _CurrentPathSteps(self):
+		if self._currentpaths.numRows == 0:
+			return []
+		return [int(c) for c in self._currentpaths.col(0)]
+
+	@property
+	def _NeedsNewPath(self):
+		currstep = self.comp.par.Step.eval()
+		if currstep == -1:
+			return True
+		steps = self._CurrentPathSteps
+		return not steps or currstep > len(steps)
+
+	def ChooseNext(self):
+		if self._NeedsNewPath:
+			self._ChooseNewPath()
+		else:
+			self.comp.par.Step += 1
+		# ....????
+
+	def _ChooseNewPath(self):
+		pass
+
+	def Reset(self, hard=False):
+		pass
+
 class PathBuilder(base.Extension):
 	def __init__(self, comp):
 		super().__init__(comp)
