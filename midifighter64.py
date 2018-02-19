@@ -48,7 +48,8 @@ class Mapping:
 	def __init__(self, i, x, y, note):
 		self.i, self.x, self.y, self.note = i, x, y, note
 		self.name = 'b{}'.format(i)
-		self.inputnote = 'ch3n{}'.format(note)
+		self.inputnote = note
+		self.animnote = note - 36  # 3 octaves lower
 
 def _buildmappings() -> List[Mapping]:
 	mappinglist = []
@@ -56,7 +57,7 @@ def _buildmappings() -> List[Mapping]:
 	def _add(i, x, y, note):
 		for vals in zip(i, x, y, note):
 			mappinglist.append(
-				Mapping(i=vals[0], x=vals[1], y=vals[2], note=vals[3]))
+				Mapping(i=vals[0]+1, x=vals[1], y=vals[2], note=vals[3]))
 
 	def _add4row(i, x, y, note):
 		_add(
@@ -98,7 +99,18 @@ mappingcols = [
 ]
 
 def _map(btn):
-	return mappings[btn] if 0 <= btn < 64 else None
+	if isinstance(btn, str):
+		if not btn.startswith('b'):
+			return None
+		btn = btn[1:]
+	try:
+		btn = int(btn)
+	except ValueError:
+		return None
+	return mappings[btn - 1] if 1 <= btn <= 64 else None
+
+def _colorvalue(color):
+	return color or 0
 
 
 class MidiFighter(base.Extension):
@@ -114,16 +126,24 @@ class MidiFighter(base.Extension):
 		for m in mappings:
 			dat.appendRow([m.name, m.x, m.y, m.note, m.inputnote])
 
-	def _ColorValue(self, color):
-		return color
-
+	def SendNote(self, chan, note, vel):
+		self.midiout.sendNoteOn(chan, note, vel)
 
 	def SetColor(self, btn, color):
 		m = _map(btn)
-		val = self._ColorValue(color)
+		if m is None:
+			return
+		val = _colorvalue(color)
+		self.SendNote(3, m.note, val)
 
+	def SetAllColor(self, color):
+		val = _colorvalue(color)
+		for m in mappings:
+			self.SendNote(3, m.note, val)
 
-def setColor(m, btn, color):
-	# to set b49 to red: n=62 v=5
-	m.sendNoteOn()
-	pass
+	def ResetColor(self, btn):
+		self.SetColor(btn, 0)
+
+	def ResetAllColor(self):
+		self.SetAllColor(0)
+
