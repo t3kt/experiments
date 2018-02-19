@@ -1,3 +1,6 @@
+from typing import List
+from numpy import interp, clip
+
 print('midifighter64.py initializing')
 
 try:
@@ -18,7 +21,6 @@ except ImportError:
 if False:
 	from common.lib._stubs import *
 
-from typing import List
 
 # 56	57	58	59	|	60	61	62	63
 # 48	49	50	51	|	52	53	54	55
@@ -49,7 +51,7 @@ class Mapping:
 		self.i, self.x, self.y, self.note = i, x, y, note
 		self.name = 'b{}'.format(i)
 		self.inputnote = note
-		self.animnote = note - 36  # 3 octaves lower
+		self.statenote = note - 36  # 3 octaves lower
 
 def _buildmappings() -> List[Mapping]:
 	mappinglist = []
@@ -112,6 +114,40 @@ def _map(btn):
 def _colorvalue(color):
 	return color or 0
 
+def _brightvalue(level):
+	level = clip(level, 0, 1)
+	return interp(level, [0, 1], [18, 33])
+
+_beatintervals = [16, 8, 4, 2, 1]
+_fractionintervals = [2, 4, 8]
+
+def _togglespeedvalue(beats, fraction):
+	if beats is not None:
+		if beats < 1:
+			if beats == 0.5:
+				i = 5
+			elif beats == 0.25:
+				i = 6
+			elif beats == 0.125:
+				i = 7
+			else:
+				return None
+			return i + 34
+		else:
+			i = _beatintervals.index(beats)
+		return (i + 34) if i != -1 else None
+	elif fraction is not None:
+		i = _fractionintervals.index(fraction)
+		return (i + 39) if i != -1 else None
+	else:
+		return 4 + 34  # None = 1 beat
+
+def _pulsespeedvalue(beats, fraction):
+	val = _togglespeedvalue(beats, fraction)
+	return (val + 8) if val is not None else None
+
+_reset = 17
+
 
 class MidiFighter(base.Extension):
 	def __init__(self, comp):
@@ -122,28 +158,52 @@ class MidiFighter(base.Extension):
 	@staticmethod
 	def WriteMappings(dat):
 		dat.clear()
-		dat.appendRow(['name', 'x', 'y', 'note', 'inputnote'])
+		dat.appendRow(['name', 'x', 'y', 'note', 'inputnote', 'statenote'])
 		for m in mappings:
-			dat.appendRow([m.name, m.x, m.y, m.note, m.inputnote])
+			dat.appendRow([m.name, m.x, m.y, m.note, m.inputnote, m.statenote])
 
 	def SendNote(self, chan, note, vel):
 		self.midiout.sendNoteOn(chan, note, vel)
 
-	def SetColor(self, btn, color):
-		m = _map(btn)
-		if m is None:
-			return
-		val = _colorvalue(color)
-		self.SendNote(3, m.note, val)
-
-	def SetAllColor(self, color):
-		val = _colorvalue(color)
-		for m in mappings:
+	def SetRawColorValue(self, btn, val):
+		if btn == 'all':
+			for m in mappings:
+				self.SendNote(3, m.note, val)
+		else:
+			m = _map(btn)
+			if m is None:
+				return
 			self.SendNote(3, m.note, val)
+
+	def SetColor(self, btn, color):
+		val = _colorvalue(color)
+		self.SetRawColorValue(btn, val)
 
 	def ResetColor(self, btn):
 		self.SetColor(btn, 0)
 
-	def ResetAllColor(self):
-		self.SetAllColor(0)
+	def SetState(self, btn, value):
+		if btn == 'all':
+			for m in mappings:
+				self.SendNote(4, m.statenote, value)
+		else:
+			m = _map(btn)
+			if m is not None:
+				self.SendNote(4, m.statenote, value)
+
+	def ResetState(self, btn):
+		self.SetState(btn, _reset)
+
+	def SetBrightness(self, btn, level):
+		self.SetState(btn, _brightvalue(level))
+
+	def SetToggle(self, btn, beats=None, fraction=None):
+		val = _togglespeedvalue(beats, fraction)
+		if val is not None:
+			self.SetState(btn, val)
+
+	def SetPulse(self, btn, beats=None, fraction=None):
+		val = _pulsespeedvalue(beats, fraction)
+		if val is not None:
+			self.SetState(btn, val)
 
