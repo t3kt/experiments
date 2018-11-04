@@ -142,6 +142,34 @@ class Rhombus:
 	def center(self):
 		return (self.corners[0] + self.corners[2]) / 2
 
+	# @property
+	# def angle1(self):
+	# 	a = 1
+	# 	b = 0
+	# 	c = 3
+	# 	return math.degrees(math.atan2(
+	# 		self.corners[c].y - self.corners[a].y,
+	# 		self.corners[c].x - self.corners[a].x) - math.atan2(
+	# 		self.corners[b].y - self.corners[a].y,
+	# 		self.corners[b].x - self.corners[a].x))
+	# 	# return (self.corners[1] - self.corners[0]).angle(self.corners[3] - self.corners[0])
+	#
+	# @property
+	# def angle2(self):
+	# 	return (self.corners[2] - self.corners[1]).angle(self.corners[0] - self.corners[1])
+	#
+	# @property
+	# def sidelength(self):
+	# 	return self.corners[0].distance(self.corners[1])
+	#
+	# @property
+	# def length1(self):
+	# 	return self.corners[0].distance(self.corners[2])
+	#
+	# @property
+	# def length2(self):
+	# 	return self.corners[1].distance(self.corners[3])
+
 	def _getpart(self, part):
 		if callable(part):
 			return part(self)
@@ -273,3 +301,34 @@ class RhombusModifier:
 			if enableoffset:
 				rhombus.offsetcorners(offset=offset)
 			rhombus.addtosop(self.sop)
+
+class RhombusAttrsBuilder:
+	def __init__(self, dat):
+		self.dat = dat
+
+	def setupParameters(self):
+		page = self.dat.appendCustomPage('Custom')
+		page.appendPython('Angles')
+		p = page.appendFloat('Sidelength', label='Side Length')[0]
+		p.normMax = 2
+		p.default = 1
+
+	def cook(self):
+		self.dat.clear()
+		self.dat.appendRow([
+			'name', 'angle1', 'angle2', 'length1', 'length2', 'sidelength',
+		])
+		# angles = self.dat.par.Angles.eval()
+		# sidelength = self.dat.par.Sidelength.eval()
+		# for angle in angles:
+		# 	rhombus = Rhombus.create(sidelength=sidelength, angle=angle)
+		# 	self.dat.appendRow([
+		# 		'rhombus{}'.format(angle),
+		# 		rhombus.angle1,
+		# 		rhombus.angle2,
+		# 		rhombus.length1,
+		# 		rhombus.length2,
+		# 		rhombus.sidelength,
+		# 	])
+
+
