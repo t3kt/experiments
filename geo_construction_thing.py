@@ -192,7 +192,11 @@ class Rhombus:
 		pos1 = tdu.Vector(-width/2, 0, 0)
 		pos2 = tdu.Vector(0, height/2, 0)
 		pos3 = tdu.Vector(width/2, 0, 0)
-		return Rhombus(pos0, pos1, pos2, pos3)
+		return cls(pos0, pos1, pos2, pos3)
+
+	@classmethod
+	def frompoly(cls, poly):
+		return cls(*poly)
 
 def _asvector(pt):
 	if hasattr(pt, 'point'):
@@ -208,3 +212,64 @@ def CreateRhombusPartParam(page, name, label=None):
 	par.menuNames = ['corner0', 'corner1', 'corner2', 'corner3', 'center']
 	par.menuLabels = ['Corner 0', 'Corner 1', 'Corner 2', 'Corner 3', 'Center']
 	return par
+
+class RhombusBuilder:
+	def __init__(self, sop):
+		self.sop = sop
+
+	def setupParameters(self):
+		page = self.sop.appendCustomPage('Custom')
+		p = page.appendFloat('Sidelength', label='Side Length')[0]
+		p.normMax = 2
+		p.default = 1
+		p = page.appendFloat('Angle', label='Angle')[0]
+		p.normMax = 360
+		p.default = 90
+
+	def cook(self):
+		self.sop.clear()
+		rhombus = Rhombus.create(
+			sidelength=self.sop.par.Sidelength.eval(),
+			angle=self.sop.par.Angle.eval()
+		)
+		rhombus.addtosop(self.sop)
+
+class RhombusModifier:
+	def __init__(self, sop):
+		self.sop = sop
+
+	def setupParameters(self):
+		page = self.sop.appendCustomPage('Custom')
+		page.appendToggle('Enablemoveto', label='Enable Move To')
+		CreateRhombusPartParam(page, 'Movepartto', label='Move Part To')
+		page.appendXY('Movetoposition', label='Move To Position')
+		page.appendToggle('Enablerotate', label='Enable Rotate')
+		CreateRhombusPartParam(page, 'Rotateonpart', label='Rotate On Part')
+		p = page.appendFloat('Rotate', label='Rotate')[0]
+		p.normMin = -360
+		p.normMax = 360
+		page.appendToggle('Enableoffsetcorners', label='Enable Offset Corners')
+		page.appendInt('Offsetcorners', label='Offset Corners')
+
+	def cook(self):
+		self.sop.clear()
+		enablemoveto = self.sop.par.Enablemoveto.eval()
+		movepart = self.sop.par.Movepartto.eval()
+		moveposition = tdu.Vector(
+			self.sop.par.Movetopositionx.eval(),
+			self.sop.par.Movetopositiony.eval(),
+			0)
+		enablerotate = self.sop.par.Enablerotate.eval()
+		rotatepart = self.sop.par.Rotateonpart.eval()
+		rotate = self.sop.par.Rotate.eval()
+		enableoffset = self.sop.par.Enableoffsetcorners.eval()
+		offset = self.sop.par.Offsetcorners.eval()
+		for poly in self.sop.inputs[0].prims:
+			rhombus = Rhombus.frompoly(poly)
+			if enablemoveto:
+				rhombus.movepartto(part=movepart, position=moveposition)
+			if enablerotate:
+				rhombus.rotateonpart(r=rotate, part=rotatepart)
+			if enableoffset:
+				rhombus.offsetcorners(offset=offset)
+			rhombus.addtosop(self.sop)
