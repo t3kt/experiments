@@ -1,3 +1,4 @@
+import itertools
 import math
 import td
 
@@ -117,6 +118,12 @@ def AddQuad(sop, pos0, pos1, pos2, pos3):
 	_setpointpos(polypoints[1], pos1)
 	_setpointpos(polypoints[2], pos2)
 	_setpointpos(polypoints[3], pos3)
+	if not hasattr(poly[0], 'uv'):
+		sop.vertexAttribs.create('uv')
+	poly[0].uv = (0, 0, 0)
+	poly[1].uv = (0, 1, 0)
+	poly[2].uv = (1, 1, 0)
+	poly[3].uv = (1, 0, 0)
 	return poly
 
 class RhombusPart:
@@ -170,7 +177,7 @@ class Rhombus:
 	# def length2(self):
 	# 	return self.corners[1].distance(self.corners[3])
 
-	def _getpart(self, part):
+	def getpart(self, part):
 		if callable(part):
 			return part(self)
 		if part in (None, 'center'):
@@ -193,20 +200,25 @@ class Rhombus:
 			self.corners[i] += translate
 
 	def movepartto(self, part, position):
-		self.move(_asvector(position) - self._getpart(part))
+		self.move(_asvector(position) - self.getpart(part))
 
 	def rotateonpart(self, r, part=RhombusPart.center):
-		pivot = self._getpart(part)
-		matrix = tdu.Matrix()
-		matrix.rotate(0, 0, r, pivot=pivot)
+		pivot = self.getpart(part)
 		for i in range(4):
-			self.corners[i] *= matrix
+			self.corners[i] = _rotate(point=self.corners[i], origin=pivot, angledegrees=r)
 
 	def offsetcorners(self, offset):
 		self.corners = [
 			self.corners[(i + offset) % 4]
 			for i in range(4)
 		]
+
+	def reversecorners(self):
+		# 0 -> 0
+		# 1 -> 3
+		# 2 -> 2
+		# 3 -> 1
+		self.corners[1], self.corners[3] = self.corners[3], self.corners[1]
 
 	def addtosop(self, sop):
 		return AddQuad(sop, *self.corners)
@@ -226,6 +238,16 @@ class Rhombus:
 	def frompoly(cls, poly):
 		return cls(*poly)
 
+def _rotate(point, origin, angledegrees):
+	angle = math.radians(angledegrees)
+	ox, oy, _ = _asvector(origin)
+	px, py, _ = _asvector(point)
+	return tdu.Vector(
+		ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy),
+		oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy),
+		0
+	)
+
 def _asvector(pt):
 	if hasattr(pt, 'point'):
 		pt = pt.point
@@ -239,6 +261,7 @@ def CreateRhombusPartParam(page, name, label=None):
 	par = page.appendMenu(name, label=label)[0]
 	par.menuNames = ['corner0', 'corner1', 'corner2', 'corner3', 'center']
 	par.menuLabels = ['Corner 0', 'Corner 1', 'Corner 2', 'Corner 3', 'Center']
+	par.default = 'center'
 	return par
 
 class RhombusBuilder:
@@ -253,6 +276,8 @@ class RhombusBuilder:
 		p = page.appendFloat('Angle', label='Angle')[0]
 		p.normMax = 360
 		p.default = 90
+		CreateRhombusPartParam(page, 'Positionpart', label='Position Part').default = 'center'
+		page.appendXY('Position', label='Position')
 
 	def cook(self):
 		self.sop.clear()
@@ -260,6 +285,9 @@ class RhombusBuilder:
 			sidelength=self.sop.par.Sidelength.eval(),
 			angle=self.sop.par.Angle.eval()
 		)
+		rhombus.movepartto(
+			part=self.sop.par.Positionpart.eval(),
+			position=tdu.Vector(self.sop.par.Positionx.eval(), self.sop.par.Positiony.eval(), 0))
 		rhombus.addtosop(self.sop)
 
 class RhombusModifier:
@@ -276,11 +304,16 @@ class RhombusModifier:
 		p = page.appendFloat('Rotate', label='Rotate')[0]
 		p.normMin = -360
 		p.normMax = 360
-		page.appendToggle('Enableoffsetcorners', label='Enable Offset Corners')
-		page.appendInt('Offsetcorners', label='Offset Corners')
+		page.appendToggle('Enableoffsetcorners', label='Enable Offset Corner Order')
+		page.appendInt('Offsetcorners', label='Offset Corner Order')
+		page.appendToggle('Reversecorners', label='Reverse Corner Order')
 
 	def cook(self):
 		self.sop.clear()
+		if len(self.sop.inputs) < 1:
+			return
+		if not hasattr(self.sop.par, 'Reversecorners'):
+			self.setupParameters()
 		enablemoveto = self.sop.par.Enablemoveto.eval()
 		movepart = self.sop.par.Movepartto.eval()
 		moveposition = tdu.Vector(
@@ -292,6 +325,7 @@ class RhombusModifier:
 		rotate = self.sop.par.Rotate.eval()
 		enableoffset = self.sop.par.Enableoffsetcorners.eval()
 		offset = self.sop.par.Offsetcorners.eval()
+		reversecorners = self.sop.par.Reversecorners.eval()
 		for poly in self.sop.inputs[0].prims:
 			rhombus = Rhombus.frompoly(poly)
 			if enablemoveto:
@@ -300,7 +334,37 @@ class RhombusModifier:
 				rhombus.rotateonpart(r=rotate, part=rotatepart)
 			if enableoffset:
 				rhombus.offsetcorners(offset=offset)
+			if reversecorners:
+				rhombus.reversecorners()
 			rhombus.addtosop(self.sop)
+
+
+class RhombusAligner:
+	def __init__(self, sop):
+		self.sop = sop
+
+	def setupParameters(self):
+		page = self.sop.appendCustomPage('Custom')
+		page.appendToggle('Enablemoveto', label='Enable Move To')[0].default = True
+		CreateRhombusPartParam(page, 'Movefrompart', label='Move From Part')
+		CreateRhombusPartParam(page, 'Movetopart', label='Move To Part')
+
+	def cook(self):
+		self.sop.clear()
+		if len(self.sop.inputs) < 2:
+			return
+		enablemoveto = self.sop.par.Enablemoveto.eval()
+		frompart = self.sop.par.Movefrompart.eval()
+		topart = self.sop.par.Movetopart.eval()
+		sourcepolys = self.sop.inputs[0].prims
+		targetpolys = self.sop.inputs[1].prims
+		for sourcepoly, targetpoly in zip(sourcepolys, itertools.cycle(targetpolys)):
+			rhombus = Rhombus.frompoly(sourcepoly)
+			targetrhombus = Rhombus.frompoly(targetpoly)
+			if enablemoveto:
+				rhombus.movepartto(part=frompart, position=targetrhombus.getpart(topart))
+			rhombus.addtosop(self.sop)
+
 
 class RhombusAttrsBuilder:
 	def __init__(self, dat):
