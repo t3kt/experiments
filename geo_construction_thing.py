@@ -180,6 +180,8 @@ class Rhombus:
 	def getpart(self, part):
 		if callable(part):
 			return part(self)
+		if isinstance(part, int):
+			return self.corners[part]
 		if part in (None, 'center'):
 			return self.center
 		if part == 'corner0':
@@ -193,6 +195,12 @@ class Rhombus:
 		if isinstance(part, int):
 			return self.corners[part]
 		raise TypeError()
+
+	def __getitem__(self, index):
+		return self.corners[index]
+
+	def __setitem__(self, index, value):
+		self.corners[index] = _asvector(value)
 
 	def move(self, translate):
 		translate = _asvector(translate)
@@ -223,8 +231,26 @@ class Rhombus:
 	def addtosop(self, sop):
 		return AddQuad(sop, *self.corners)
 
+	def modify(
+			self,
+			movepart=None, moveto=(0, 0, 0),
+			rotatepart=None, rotate=0,
+			offsetcorners=None, reversecorners=False):
+		if movepart is not None:
+			self.movepartto(movepart, moveto)
+		if rotatepart is not None:
+			self.rotateonpart(rotate, rotatepart)
+		if offsetcorners is not None:
+			self.offsetcorners(offsetcorners)
+		if reversecorners:
+			self.reversecorners()
+
 	@classmethod
-	def create(cls, sidelength=1, angle=90):
+	def create(
+			cls,
+			sidelength=1, angle=90,
+			movepart=RhombusPart.center, moveto=(0, 0, 0),
+			rotatepart=RhombusPart.center, rotate=0):
 		anglerads = math.radians(angle)
 		width = sidelength * math.sqrt(2 - 2 * math.cos(anglerads))
 		height = sidelength * math.sqrt(2 + 2 * math.cos(anglerads))
@@ -232,7 +258,11 @@ class Rhombus:
 		pos1 = tdu.Vector(-width/2, 0, 0)
 		pos2 = tdu.Vector(0, height/2, 0)
 		pos3 = tdu.Vector(width/2, 0, 0)
-		return cls(pos0, pos1, pos2, pos3)
+		rhombus = cls(pos0, pos1, pos2, pos3)
+		rhombus.modify(
+			movepart=movepart, moveto=moveto,
+			rotatepart=rotatepart, rotate=rotate)
+		return rhombus
 
 	@classmethod
 	def frompoly(cls, poly):
@@ -245,8 +275,7 @@ def _rotate(point, origin, angledegrees):
 	return tdu.Vector(
 		ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy),
 		oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy),
-		0
-	)
+		0)
 
 def _asvector(pt):
 	if hasattr(pt, 'point'):
@@ -328,14 +357,12 @@ class RhombusModifier:
 		reversecorners = self.sop.par.Reversecorners.eval()
 		for poly in self.sop.inputs[0].prims:
 			rhombus = Rhombus.frompoly(poly)
-			if enablemoveto:
-				rhombus.movepartto(part=movepart, position=moveposition)
-			if enablerotate:
-				rhombus.rotateonpart(r=rotate, part=rotatepart)
-			if enableoffset:
-				rhombus.offsetcorners(offset=offset)
-			if reversecorners:
-				rhombus.reversecorners()
+			rhombus.modify(
+				movepart=movepart if enablemoveto else None, moveto=moveposition,
+				rotatepart=rotatepart if enablerotate else None, rotate=rotate,
+				offsetcorners=offset if enableoffset else None,
+				reversecorners=reversecorners
+			)
 			rhombus.addtosop(self.sop)
 
 
@@ -394,5 +421,28 @@ class RhombusAttrsBuilder:
 		# 		rhombus.length2,
 		# 		rhombus.sidelength,
 		# 	])
+
+
+class NewFivePointRhombusThing:
+	def __init__(self, sop):
+		self.sop = sop
+
+	def setupParameters(self):
+		pass
+
+	def cook(self):
+		self.sop.clear()
+		r1 = Rhombus.create(angle=72, movepart=RhombusPart.point0, moveto=(0, 0))
+		r1.addtosop(self.sop)
+		r2 = Rhombus.create(
+			angle=36,
+			movepart=RhombusPart.point0, moveto=r1.getpart(RhombusPart.point2),
+			rotatepart=RhombusPart.point0, rotate=90+36)
+		r2.addtosop(self.sop)
+		r3a = Rhombus.create(
+			angle=72,
+			movepart=RhombusPart.point1, moveto=r1.getpart(RhombusPart.point2),
+			rotatepart=RhombusPart.point1, rotate=36)
+		r3a.addtosop(self.sop)
 
 
