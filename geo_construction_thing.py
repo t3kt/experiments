@@ -439,10 +439,16 @@ class NewFivePointRhombusThing:
 			movepart=RhombusPart.point0, moveto=r1.getpart(RhombusPart.point2),
 			rotatepart=RhombusPart.point0, rotate=90+36)
 		r2.addtosop(self.sop)
-		r3a = Rhombus.create(
-			angle=72,
+		r3a = Rhombus.create(angle=72)
+		r3a.modify(
 			movepart=RhombusPart.point1, moveto=r1.getpart(RhombusPart.point2),
 			rotatepart=RhombusPart.point1, rotate=36)
 		r3a.addtosop(self.sop)
+		r3b = r3a.clone()
+		r3b.modify(
+			movepart=RhombusPart.point1, moveto=r1.getpart(RhombusPart.point2),
+			rotatepart=RhombusPart.point1, rotate=180-36)
+		r3b.addtosop(self.sop)
+
 
 
