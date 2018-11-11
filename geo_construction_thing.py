@@ -194,7 +194,7 @@ class Rhombus:
 			return self.corners[3]
 		if isinstance(part, int):
 			return self.corners[part]
-		raise TypeError()
+		raise TypeError('supported part spec: {!r} (type: {})'.format(part, type(part)))
 
 	def __getitem__(self, index):
 		return self.corners[index]
@@ -298,7 +298,7 @@ class RhombusBuilder:
 		self.sop = sop
 
 	def setupParameters(self):
-		page = self.sop.appendCustomPage('Custom')
+		page = self.sop.appendCustomPage('Rhombus Builder')
 		p = page.appendFloat('Sidelength', label='Side Length')[0]
 		p.normMax = 2
 		p.default = 1
@@ -324,25 +324,41 @@ class RhombusModifier:
 		self.sop = sop
 
 	def setupParameters(self):
-		page = self.sop.appendCustomPage('Custom')
-		page.appendToggle('Enablemoveto', label='Enable Move To')
+		page = self.sop.appendCustomPage('Rhombus Modifier')
+		page.appendToggle('Enablemoveto', label='Enable Move To')[0].startSection = True
 		CreateRhombusPartParam(page, 'Movepartto', label='Move Part To')
 		page.appendXY('Movetoposition', label='Move To Position')
-		page.appendToggle('Enablerotate', label='Enable Rotate')
+		page.appendToggle('Enablepinmoveto', label='Enable Move To Pinned')
+		CreateRhombusPartParam(page, 'Pinmovetopart', label='Move To Part Pinned')
+		CreateRhombusPartParam(page, 'Secondarypinmovetopart', label='Secondary Move To Part Pinned')
+		page.appendToggle('Enablerotate', label='Enable Rotate')[0].startSection = True
 		CreateRhombusPartParam(page, 'Rotateonpart', label='Rotate On Part')
 		p = page.appendFloat('Rotate', label='Rotate')[0]
 		p.normMin = -360
 		p.normMax = 360
-		page.appendToggle('Enableoffsetcorners', label='Enable Offset Corner Order')
+		p = page.appendFloat('Secondaryrotate', label='Secondary Rotate')[0]
+		p.normMin = -360
+		p.normMax = 360
+		page.appendToggle('Enableoffsetcorners', label='Enable Offset Corner Order')[0].startSection = True
 		page.appendInt('Offsetcorners', label='Offset Corner Order')
 		page.appendToggle('Reversecorners', label='Reverse Corner Order')
+		page.appendToggle('Reversesecondarycorners', label='Reverse Secondary Corners')
+		page.appendToggle('Enablesecondary', label='Enable Secondary')[0].startSection = True
+		page.sort(
+			'Enablemoveto', 'Movepartto', 'Movetoposition', 'Enablepinmoveto', 'Pinmovetopart', 'Secondarypinmovetopart',
+			'Enablerotate', 'Rotateonpart', 'Rotate', 'Secondaryrotate',
+			'Enableoffsetcorners', 'Offsetcorners', 'Reversecorners', 'Reversesecondarycorners',
+			'Enablesecondary',
+		)
+
 
 	def cook(self):
 		self.sop.clear()
 		if len(self.sop.inputs) < 1:
 			return
-		if not hasattr(self.sop.par, 'Reversecorners'):
+		if not hasattr(self.sop.par, 'Secondarypinmovetopart') or not hasattr(self.sop.par, 'Enablepinmoveto'):
 			self.setupParameters()
+
 		enablemoveto = self.sop.par.Enablemoveto.eval()
 		movepart = self.sop.par.Movepartto.eval()
 		moveposition = tdu.Vector(
@@ -355,15 +371,47 @@ class RhombusModifier:
 		enableoffset = self.sop.par.Enableoffsetcorners.eval()
 		offset = self.sop.par.Offsetcorners.eval()
 		reversecorners = self.sop.par.Reversecorners.eval()
-		for poly in self.sop.inputs[0].prims:
+		pintargets = self.sop.inputs[1].prims if len(self.sop.inputs) > 1 else []
+		enablepinmove = self.sop.par.Enablepinmoveto.eval() and bool(pintargets)
+		pintopart = self.sop.par.Pinmovetopart.eval()
+		enablesecondary = self.sop.par.Enablesecondary.eval()
+		secondaryrotate = self.sop.par.Secondaryrotate.eval()
+		reversesecondarycorners = self.sop.par.Reversesecondarycorners.eval()
+		secondarypintopart = self.sop.par.Secondarypinmovetopart.eval()
+
+		def _getmovetarget(i, topart):
+			if not enablepinmove:
+				return moveposition
+			if not pintargets:
+				return None
+			targetpoly = pintargets[i % len(pintargets)]
+			targetrhombus = Rhombus.frompoly(targetpoly)
+			return targetrhombus.getpart(topart)
+
+		for i, poly in enumerate(self.sop.inputs[0].prims):
 			rhombus = Rhombus.frompoly(poly)
 			rhombus.modify(
-				movepart=movepart if enablemoveto else None, moveto=moveposition,
 				rotatepart=rotatepart if enablerotate else None, rotate=rotate,
 				offsetcorners=offset if enableoffset else None,
 				reversecorners=reversecorners
 			)
+			if enablemoveto:
+				targetpos = _getmovetarget(i, pintopart)
+				if targetpos is not None:
+					rhombus.movepartto(part=movepart, position=targetpos)
 			rhombus.addtosop(self.sop)
+			if enablesecondary:
+				secondaryrhombus = Rhombus.frompoly(poly)
+				secondaryrhombus.modify(
+					rotatepart=rotatepart if enablerotate else None, rotate=secondaryrotate,
+					offsetcorners=offset if enableoffset else None,
+					reversecorners=reversesecondarycorners
+				)
+				if enablemoveto:
+					targetpos = _getmovetarget(i + 1, secondarypintopart)
+					if targetpos is not None:
+						secondaryrhombus.movepartto(part=movepart, position=targetpos)
+				secondaryrhombus.addtosop(self.sop)
 
 
 class RhombusAligner:
@@ -371,7 +419,7 @@ class RhombusAligner:
 		self.sop = sop
 
 	def setupParameters(self):
-		page = self.sop.appendCustomPage('Custom')
+		page = self.sop.appendCustomPage('Rhombus Aligner')
 		page.appendToggle('Enablemoveto', label='Enable Move To')[0].default = True
 		CreateRhombusPartParam(page, 'Movefrompart', label='Move From Part')
 		CreateRhombusPartParam(page, 'Movetopart', label='Move To Part')
@@ -451,4 +499,16 @@ class NewFivePointRhombusThing:
 		r3b.addtosop(self.sop)
 
 
+def BindToParentParams(o):
+	parent = o.parent()
+	# print('omg BindToParentParams({}) parent: {}'.format(o, parent))
+	for par in o.customPars:
+		# print('omg par {!r}'.format(par))
+		parentpar = getattr(parent.par, par.name, None)
+		if parentpar is not None:
+			# print('wtfomg parent par {!r}'.format(parentpar))
+			expr = "op('..').par." + par.name
+			# print('omg expr {!r}'.format(expr))
+			par.mode = ParMode.EXPRESSION
+			par.expr = expr
 
