@@ -1,5 +1,5 @@
 *-output-*.*
 .idea
 *.dmp
-CrashAutoSave.toe
+CrashAutoSave*.toe
 Thumbs\.db
