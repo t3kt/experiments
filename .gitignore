@@ -3,3 +3,5 @@
 *.dmp
 CrashAutoSave*.toe
 Thumbs\.db
+
+__pycache__
