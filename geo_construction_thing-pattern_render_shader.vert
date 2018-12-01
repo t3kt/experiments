@@ -9,6 +9,7 @@ uniform int numGroups = 1;
 uniform vec3 globalCenter;
 uniform sampler2D sGroupLocalMap;
 uniform sampler2D sGroupGlobalMap;
+uniform sampler2D sGroupColorMap;
 
 in float groupRatio;
 in vec3 primCenter;
@@ -51,6 +52,10 @@ vec3 getGlobalTranslate() {
 
 vec3 getGlobalScale() {
 	return texture(sGroupGlobalMap, vec2(groupRatio, 0.0)).rgb;
+}
+
+vec4 getGroupColor() {
+	return texture(sGroupColorMap, vec2(groupRatio, 0.0));
 }
 
 vec4 applyScale(vec4 val, vec3 s, vec3 p) {
@@ -183,6 +188,7 @@ void main()
 	oVert.cameraIndex = cameraIndex;
 	oVert.worldSpacePos.xyz = worldSpacePos.xyz;
 	oVert.color = TDInstanceColor(Cd);
+	oVert.color *= getGroupColor();
 	vec3 worldSpaceNorm = normalize(TDDeformNorm(N));
 	oVert.worldSpaceNorm.xyz = worldSpaceNorm;
 
