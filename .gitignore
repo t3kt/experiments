@@ -5,3 +5,5 @@ CrashAutoSave*.toe
 Thumbs\.db
 
 __pycache__
+
+TDImportCache/
