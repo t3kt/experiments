@@ -6,8 +6,8 @@ class JunoDataLoader:
 	def __init__(self, ownerComp):
 		self.ownerComp = ownerComp
 
-	@staticmethod
-	def BuildDataSetTable(dat, filetable):
+	def BuildDataSetTable(self, dat):
+		filetable = self.ownerComp.op('dataset_files')
 		dat.clear()
 		dat.appendRow([
 			'product_id', 'metadata_file', 'title',
@@ -21,15 +21,13 @@ class JunoDataLoader:
 			'data_set_id', 'image_time', 'filter_name',
 			'tdi_stage_count', 'interframe_delay',
 		])
-		for filerow in range(1, filetable.numRows):
-			filename = filetable[filerow, 'name'].val
-			filepath = filetable[filerow, 'path'].val
-			with open(filepath) as f:
+		for name, path in _filetableentries(filetable):
+			with open(path) as f:
 				obj = json.load(f)
 			_addrow(
 				dat,
 				product_id=obj['PRODUCT_ID'],
-				metadata_file=filename,
+				metadata_file=name,
 				title=obj['TITLE'],
 				orbit_number=obj['ORBIT_NUMBER'],
 				mission_phase_name=obj['MISSION_PHASE_NAME'],
@@ -49,8 +47,79 @@ class JunoDataLoader:
 				image_time=obj['IMAGE_TIME'],
 				filter_name=' '.join(obj['FILTER_NAME']) if obj['FILTER_NAME'] else None,
 				tdi_stage_count=obj['JNO:TDI_STAGES_COUNT'],
-				interframe_delay=float(_expectunit(obj['INTERFRAME_DELAY'], 's')) * 1000,
+				interframe_delay=_expectunit(obj['INTERFRAME_DELAY'], 's') * 1000,
 			)
+
+	def BuildImageFileTable(self, dat):
+		filetable = self.ownerComp.op('imageset_files')
+		dat.clear()
+		dat.appendRow([
+			'file',
+			'group',
+			'part',
+			'path',
+		])
+		for name, path in _filetableentries(filetable):
+			group, part = _parseimagename(name)
+			dat.appendRow([
+				name,
+				group,
+				part,
+				path,
+			])
+
+	def BuildImageGroupTable(self, dat):
+		filetable = self.ownerComp.op('imageset_files')
+		dat.clear()
+		dat.appendRow([
+			'group',
+			'raw',
+			'mapprojected',
+			'red',
+			'green',
+			'blue',
+			'raw_file',
+			'mapprojected_file',
+			'red_file',
+			'green_file',
+			'blue_file',
+		])
+		groups = {}
+		for name, path in _filetableentries(filetable):
+			group, part = _parseimagename(name)
+			if group in groups:
+				groupinfo = groups[group]
+			else:
+				groupinfo = {
+					'group': group,
+					'raw': 0,
+					'raw_file': None,
+					'mapprojected': 0,
+					'mapprojected_file': None,
+					'red': 0,
+					'red_file': None,
+					'green': 0,
+					'green_file': None,
+					'blue': 0,
+					'blue_file': None,
+				}
+				groups[group] = groupinfo
+			groupinfo[part] = 1
+			groupinfo[part + '_file'] = name
+
+		for groupinfo in groups.values():
+			_addrow(dat, **groupinfo)
+
+def _parseimagename(name):
+		basename, suffix = name.rsplit('-', maxsplit=1)
+		part = suffix.replace('.png', '')
+		return basename, part
+
+def _filetableentries(filetable):
+		for filerow in range(1, filetable.numRows):
+			name = filetable[filerow, 'name'].val
+			path = filetable[filerow, 'path'].val
+			yield name, path
 
 def _expectunit(val, unit):
 	if val in (None, ''):
@@ -58,7 +127,7 @@ def _expectunit(val, unit):
 	suffix = ' <{}>'.format(unit)
 	if not val.endswith(suffix):
 		raise Error('Invalid value (should have unit {}): {}'.format(unit, val))
-	return val.replace(suffix, '')
+	return float(val.replace(suffix, ''))
 
 def _addrow(dat, **cells):
 	i = dat.numRows
@@ -66,5 +135,7 @@ def _addrow(dat, **cells):
 	for key, val in cells.items():
 		if val is None:
 			val = ''
+		if isinstance(val, float) and int(val) == val:
+			val = int(val)
 		dat[i, key] = val
 
