@@ -60,22 +60,29 @@ void main()
 		inst / maxpoints,
 		inst % maxpoints);
 	#else
-	ivec3 dataCoord;
-//	= ivec3(
-//		(inst % (maxpoints * maxpoints)) % maxpoints
-//		);
-// TODO: STUFF!!!
+	int sheetSize = maxpoints * maxpoints;
+	ivec3 dataCoord = ivec3(
+		(inst % sheetSize) / maxpoints,
+		(inst % sheetSize) % maxpoints,
+		inst / sheetSize);
 	#endif
 	vec4 attrVals = texelFetch(sAttrs, dataCoord, 0);
 	vec3 pos;
-	if (!bool(attrVals.r) || dataCoord.y <= dataCoord.x) {
+	if (!bool(attrVals.r) || !bool(attrVals.a)) {// || dataCoord.y <= dataCoord.x) {
 		oVert.color = vec4(0);
 		pos = vec3(0);
+
+
+
+//		if (vertNum==0) { pos = vec3(-1, 1, 0); }
+//			else if (vertNum==1) { pos = vec3(0, -1, 0);}
+//			else if (vertNum==2) { pos = vec3(1, 1, 0); }
+//			else {pos = vec3(-2, -2, -2); }
 	} else {
+		vec4 pointStateVals;
+		#ifndef TRIANGLE_MODE
 		vec4 pointState1 = texelFetch(sPointState1, dataCoord, 0);
 		vec4 pointState2 = texelFetch(sPointState2, dataCoord, 0);
-
-		#ifndef TRIANGLE_MODE
 //		rotation *=  -lineEnd;
 //		mat3 rotation = TDRotateToVector(
 //			pointState2.xyz - pointState1.xyz,
@@ -84,7 +91,7 @@ void main()
 //		lineEndVal = (lineEndVal * 2) - 1;
 //		lineEndVal = pow(lineEndVal, 0.2);
 //		lineEndVal = (lineEndVal + 1) / 2.0;
-		vec4 pointStateVals = mix(pointState1, pointState2, (lineEndVal + 1) / 2);
+		pointStateVals = mix(pointState1, pointState2, (lineEndVal + 1) / 2);
 		pos = P;
 //		pos.x += sign(lineEnd) * length(pointState1.xyz - pointState2.xyz);
 		#ifdef MESH_MODE
@@ -97,15 +104,29 @@ void main()
 		#else
 		pos = pointStateVals.xyz;
 		#endif
+		#else
+		if (vertNum == 2) {
+			pointStateVals = texelFetch(sPointState3, dataCoord, 0);
+		} else if (vertNum == 1) {
+			pointStateVals = texelFetch(sPointState2, dataCoord, 0);
+		} else {
+			pointStateVals = texelFetch(sPointState1, dataCoord, 0);
+		}
+//		pos = pointStateVals.xyz;
+
+//		if (vertNum==0) { pos = vec3(-1, 1, 0); }
+//			else if (vertNum==1) { pos = vec3(0, -1, 0);}
+//			else if (vertNum==2) { pos = vec3(1, 1, 0); }
+//			else {pos = vec3(-2, -2, -2); }
+		#endif
 		oVert.color = texture(sPointColors, vec2(pointStateVals.w, 0)) * uColor;
 		float closeness = 1.0 - attrVals.b;
 		closeness = pow(closeness, 0.1);
 		oVert.color *= closeness;
-
-		#else
-// TODO: STUFF!!!
-		#endif
 	}
+//			pos = vec3(-0.1, 0.2, 0.1);
+//		pos = P;
+//		oVert.color = vec4(1);
 
 	vec4 worldSpacePos = TDDeform(pos);
 	gl_Position = TDWorldToProj(worldSpacePos);
