@@ -18,6 +18,8 @@ uniform samplerBuffer uSizes;
 uniform samplerBuffer uCenters;
 uniform float uSmoothK;					// smooth distance for blending primitives
 uniform vec4 uPlane;					// XYZ position and size of a plane
+uniform float uFrameWidth = 0.5;
+uniform float uFrameSmooth = 0.1;
 
 // Camera and color parameters
 uniform vec4 uCamera;					// XYZ position + Field of view for a camera
@@ -41,9 +43,9 @@ uniform vec4 uShadow;                   // Soft shadow http://iquilezles.org/www
 // http://iquilezles.org/www/articles/distfunctions/distfunctions.htm
 //------------------------------------------------------------
 
-float sphereDf(vec3 p, vec3 spherePos, float radius)
+float sdSphere( vec3 p, float s )
 {
-    return length(p - spherePos) - radius;
+  return length(p)-s;
 }
 
 float sdPlane( vec3 p, vec4 n )
@@ -51,53 +53,114 @@ float sdPlane( vec3 p, vec4 n )
     // n must be normalized
     return dot( p, n.xyz ) + n.w;
 }
-float sdBox( vec3 p, vec3 boxPos, vec3 b )
+float sdBox( vec3 p, vec3 b )
 {
-  vec3 q = abs(p - boxPos) - b;
+  vec3 q = abs(p) - b;
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
-float sdRoundBox( vec3 p, vec3 boxPos, vec3 b, float r )
+float sdRoundBox( vec3 p, vec3 b, float r )
 {
-  vec3 q = abs(p - boxPos) - b;
+  vec3 q = abs(p) - b;
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0) - r;
 }
+float sdCapsule( vec3 p,
+    vec3 a,  // offset of end a from center?
+    vec3 b,  // offset of end b from center?
+    float r  // radius
+)
+{
+  vec3 pa = p - a, ba = b - a;
+  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+  return length( pa - ba*h ) - r;
+}
 
-float opSmoothUnion( float d1, float d2) {
-    float k = uSmoothK;
+float opSmoothUnion( float d1, float d2, float k) {
     float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
     return mix( d2, d1, h ) - k*h*(1.0-h); }
 float opSmoothSubtraction( float d1, float d2, float k ) {
     float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
     return mix( d2, -d1, h ) + k*h*(1.0-h); }
+
+float opUnion( float d1, float d2 ) { return min(d1,d2); }
+
 float opSubtraction( float d1, float d2 ) { return max(-d1,d2); }
+
+float opIntersection( float d1, float d2 ) { return max(d1,d2); }
 //------------------------------------------------------------
 // Describe your scene here
 //------------------------------------------------------------
+
+float quadFrameSDF(vec3 p, vec2 size) {
+    // top left-right
+    float frame = sdCapsule(p,
+        vec3(size * vec2(-0.5, 0.5), 0),
+        vec3(size * vec2(0.5, 0.5), 0),
+        uFrameWidth);
+    // bottom left-right
+    frame = opUnion(frame, sdCapsule(p,
+        vec3(size * vec2(-0.5, -0.5), 0),
+        vec3(size * vec2(0.5, -0.5), 0),
+        uFrameWidth));
+    // top-bottom left
+    frame = opUnion(frame, sdCapsule(p,
+        vec3(size * vec2(-0.5, 0.5), 0),
+        vec3(size * vec2(-0.5, -0.5), 0),
+        uFrameWidth));
+    // top-bottom right
+    frame = opUnion(frame, sdCapsule(p,
+        vec3(size * vec2(0.5, 0.5), 0),
+        vec3(size * vec2(0.5, -0.5), 0),
+        uFrameWidth));
+    return frame;
+}
+
+float boxFrameSDF(vec3 p, vec3 size) {
+    // front quad frame
+    float frame = quadFrameSDF(
+        p - vec3(0, 0, 0.5 * size.z),
+        size.xy);
+    // back quad frame
+    frame = opUnion(frame, quadFrameSDF(
+        p + vec3(0, 0, 0.5 * size.z),
+        size.xy));
+
+    // top left front-back
+    frame = opUnion(frame, sdCapsule(p,
+        size * vec3(-0.5, 0.5, -0.5),
+        size * vec3(-0.5, 0.5, 0.5),
+        uFrameWidth));
+    // top right front-back
+    frame = opUnion(frame, sdCapsule(p,
+        size * vec3(0.5, 0.5, -0.5),
+        size * vec3(0.5, 0.5, 0.5),
+        uFrameWidth));
+    // bottom left front-back
+    frame = opUnion(frame, sdCapsule(p,
+        size * vec3(-0.5, -0.5, -0.5),
+        size * vec3(-0.5, -0.5, 0.5),
+        uFrameWidth));
+    // bottom right front-back
+    frame = opUnion(frame, sdCapsule(p,
+        size * vec3(0.5, -0.5, -0.5),
+        size * vec3(0.5, -0.5, 0.5),
+        uFrameWidth));
+    return frame;
+}
+
 float sceneSDF(vec3 p)
 {
 //p = mod(p, vec3(12.0));
     
     float scene = uMaxDist;  // for empty start
     //float scene = sdPlane(p, uPlane);
-    
 
-    // Loop for creating spheres at every sample of an array
     for (int i = 0; i < uNum-1; i++) {
-        //vec4 smpl = texelFetchBuffer(uPrim, i);
         vec3 center = texelFetchBuffer(uCenters, i).xyz;
         vec3 size = texelFetchBuffer(uSizes, i).xyz;
-        //size /= 6.0;
-        //vec3 sphere = vec3(smpl.xyz);	// position
-        //float radius = smpl.w;			// radius
-        //float sph = sphereDf(p, center, size.x);
-        //scene = opSmoothUnion(scene, sph);
-        //float box = sdBox(p, center, size);
-        //scene = opSmoothUnion(scene, box);
-        float outerBox = sdBox(p, center, size);
-        float innerBox = sdRoundBox(p, center, size-vec3(0.15), 0.1);
-        float combined = opSmoothSubtraction(outerBox, innerBox, uSmoothK/4.0);
-        //float combined = opSubtraction(outerBox, innerBox);
-        scene = opSmoothUnion(scene, combined);
+        vec3 adjustedP = p - center;
+
+        float frame = boxFrameSDF(p - center, size);
+        scene = opSmoothUnion(scene, frame, uSmoothK);
     }
     return scene;
 }
