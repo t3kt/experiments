@@ -4,7 +4,6 @@
 layout (location = 0) out vec4 fragColor;
 
 uniform vec2 uRes;						// GLSL TOP resolution
-uniform float uTime;					// can be used to simple animation
 
 // raymarcher parameters
 uniform int uSteps;						// the max steps before giving up
@@ -97,20 +96,20 @@ float quadFrameSDF(vec3 p, vec2 size) {
         vec3(size * vec2(0.5, 0.5), 0),
         uFrameWidth);
     // bottom left-right
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         vec3(size * vec2(-0.5, -0.5), 0),
         vec3(size * vec2(0.5, -0.5), 0),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     // top-bottom left
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         vec3(size * vec2(-0.5, 0.5), 0),
         vec3(size * vec2(-0.5, -0.5), 0),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     // top-bottom right
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         vec3(size * vec2(0.5, 0.5), 0),
         vec3(size * vec2(0.5, -0.5), 0),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     return frame;
 }
 
@@ -120,30 +119,30 @@ float boxFrameSDF(vec3 p, vec3 size) {
         p - vec3(0, 0, 0.5 * size.z),
         size.xy);
     // back quad frame
-    frame = opUnion(frame, quadFrameSDF(
+    frame = opSmoothUnion(frame, quadFrameSDF(
         p + vec3(0, 0, 0.5 * size.z),
-        size.xy));
+        size.xy), uFrameSmooth);
 
     // top left front-back
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(-0.5, 0.5, -0.5),
         size * vec3(-0.5, 0.5, 0.5),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     // top right front-back
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(0.5, 0.5, -0.5),
         size * vec3(0.5, 0.5, 0.5),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     // bottom left front-back
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(-0.5, -0.5, -0.5),
         size * vec3(-0.5, -0.5, 0.5),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     // bottom right front-back
-    frame = opUnion(frame, sdCapsule(p,
+    frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(0.5, -0.5, -0.5),
         size * vec3(0.5, -0.5, 0.5),
-        uFrameWidth));
+        uFrameWidth), uFrameSmooth);
     return frame;
 }
 
