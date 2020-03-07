@@ -181,8 +181,8 @@ float sceneSDFInner(vec3 p)
 //    p = opRepPos(p, vec3(0.1));
 
     for (int i = 0; i < uNum-1; i++) {
-        vec3 center = texelFetchBuffer(uCenters, i).xyz;
-        vec4 sizeThick = texelFetchBuffer(uSizes, i);
+        vec3 center = texelFetch(uCenters, i).xyz;
+        vec4 sizeThick = texelFetch(uSizes, i);
         vec3 size = sizeThick.xyz;
         vec3 adjustedP = p - center;
 
