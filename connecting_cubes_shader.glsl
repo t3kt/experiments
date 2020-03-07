@@ -85,82 +85,149 @@ float opUnion( float d1, float d2 ) { return min(d1,d2); }
 float opSubtraction( float d1, float d2 ) { return max(-d1,d2); }
 
 float opIntersection( float d1, float d2 ) { return max(d1,d2); }
+
+vec3 opCheapBendPos(in vec3 p, in float k )
+{
+    float c = cos(k*p.x);
+    float s = sin(k*p.x);
+    mat2  m = mat2(c,-s,s,c);
+    return vec3(m*p.xy,p.z);
+}
+
+vec3 opTwistPos( in vec3 p, in float k )
+{
+    float c = cos(k*p.y);
+    float s = sin(k*p.y);
+    mat2  m = mat2(c,-s,s,c);
+    return vec3(m*p.xz,p.y);
+}
+
+vec3 opRepPos( in vec3 p, in vec3 c )
+{
+    return mod(p+0.5*c,c)-0.5*c;
+}
 //------------------------------------------------------------
 // Describe your scene here
 //------------------------------------------------------------
 
-float quadFrameSDF(vec3 p, vec2 size) {
+float quadFrameSDF(vec3 p, vec2 size, float thickness) {
     // top left-right
     float frame = sdCapsule(p,
         vec3(size * vec2(-0.5, 0.5), 0),
         vec3(size * vec2(0.5, 0.5), 0),
-        uFrameWidth);
+        thickness);
     // bottom left-right
     frame = opSmoothUnion(frame, sdCapsule(p,
         vec3(size * vec2(-0.5, -0.5), 0),
         vec3(size * vec2(0.5, -0.5), 0),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     // top-bottom left
     frame = opSmoothUnion(frame, sdCapsule(p,
         vec3(size * vec2(-0.5, 0.5), 0),
         vec3(size * vec2(-0.5, -0.5), 0),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     // top-bottom right
     frame = opSmoothUnion(frame, sdCapsule(p,
         vec3(size * vec2(0.5, 0.5), 0),
         vec3(size * vec2(0.5, -0.5), 0),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     return frame;
 }
 
-float boxFrameSDF(vec3 p, vec3 size) {
+float boxFrameSDF(vec3 p, vec3 size, float thickness) {
     // front quad frame
     float frame = quadFrameSDF(
         p - vec3(0, 0, 0.5 * size.z),
-        size.xy);
+        size.xy,
+        thickness);
     // back quad frame
     frame = opSmoothUnion(frame, quadFrameSDF(
         p + vec3(0, 0, 0.5 * size.z),
-        size.xy), uFrameSmooth);
+        size.xy,
+        thickness), uFrameSmooth);
 
     // top left front-back
     frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(-0.5, 0.5, -0.5),
         size * vec3(-0.5, 0.5, 0.5),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     // top right front-back
     frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(0.5, 0.5, -0.5),
         size * vec3(0.5, 0.5, 0.5),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     // bottom left front-back
     frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(-0.5, -0.5, -0.5),
         size * vec3(-0.5, -0.5, 0.5),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     // bottom right front-back
     frame = opSmoothUnion(frame, sdCapsule(p,
         size * vec3(0.5, -0.5, -0.5),
         size * vec3(0.5, -0.5, 0.5),
-        uFrameWidth), uFrameSmooth);
+        thickness), uFrameSmooth);
     return frame;
 }
 
-float sceneSDF(vec3 p)
+float sceneSDFInner(vec3 p)
 {
 //p = mod(p, vec3(12.0));
     
     float scene = uMaxDist;  // for empty start
     //float scene = sdPlane(p, uPlane);
 
+//    p = opCheapBendPos(p, -0.1);
+//    p = opTwistPos(p, 0.2);
+//    p = opRepPos(p, vec3(0.1));
+
     for (int i = 0; i < uNum-1; i++) {
         vec3 center = texelFetchBuffer(uCenters, i).xyz;
-        vec3 size = texelFetchBuffer(uSizes, i).xyz;
+        vec4 sizeThick = texelFetchBuffer(uSizes, i);
+        vec3 size = sizeThick.xyz;
         vec3 adjustedP = p - center;
 
-        float frame = boxFrameSDF(p - center, size);
+        float frame = boxFrameSDF(p - center, size, uFrameWidth * sizeThick.w);
         scene = opSmoothUnion(scene, frame, uSmoothK);
     }
+    return scene;
+}
+
+float sceneSDF(vec3 p)
+{
+    float scene;
+//    scene = sceneSDFInner(p);
+
+//    float r = length(p.xz);
+//    float theta = atan(p.z, p.x);
+////    theta *= 2.0;
+//    theta = mod(theta, radians(60));
+//
+//    theta = cos(theta) * radians(60);
+//
+//
+//    p.x = r * cos(theta);
+//    p.z = r * sin(theta);
+
+//    scene = opSmoothUnion(scene, sceneSDFInner(p), uSmoothK);
+     scene = sceneSDFInner(p);
+
+//    scene = opSmoothUnion(scene,sceneSDFInner(
+//        p * vec3(-1, 1, 1)
+//    ), uSmoothK);
+//
+//    scene = opSmoothUnion(scene,sceneSDFInner(
+//        p * vec3(-1, 1, -1)
+//    ), uSmoothK);
+//
+//    scene = opSmoothUnion(scene,sceneSDFInner(
+//        p * vec3(1, 1, -1)
+//    ), uSmoothK);
+
+//    theta *= -1.0;
+//    p.x = r * cos(theta);
+//    p.z = r * sin(theta);
+//    scene = opSmoothUnion(scene, sceneSDFInner(p), uSmoothK);
+
     return scene;
 }
 
