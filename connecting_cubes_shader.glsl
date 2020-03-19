@@ -211,9 +211,9 @@ float sceneSDF(vec3 p)
 //    scene = opSmoothUnion(scene, sceneSDFInner(p), uSmoothK);
      scene = sceneSDFInner(p);
 
-    scene = opSmoothUnion(scene,sceneSDFInner(
-        p * vec3(-1, -1, -1)
-    ), uSmoothK);
+//    scene = opSmoothUnion(scene,sceneSDFInner(
+//        p * vec3(-1, -1, -1)
+//    ), uSmoothK);
 //
 //    scene = opSmoothUnion(scene,sceneSDFInner(
 //        p * vec3(-1, 1, -1)
@@ -230,7 +230,7 @@ float sceneSDF(vec3 p)
 
 
     float block = sdBox(p - vec3(0, 0, -16), vec3(30, 20, 8));
-    scene = opSmoothUnion(scene, block, uSmoothK);
+    scene = opSmoothUnion(scene, block, uSmoothK*8);
 
     return scene;
 }
