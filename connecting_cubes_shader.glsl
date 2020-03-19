@@ -173,8 +173,8 @@ float sceneSDFInner(vec3 p)
 {
 //p = mod(p, vec3(12.0));
     
-//    float scene = uMaxDist;  // for empty start
-    float scene = sdPlane(p, uPlane);
+    float scene = uMaxDist;  // for empty start
+    //float scene = sdPlane(p, uPlane);
 
 //    p = opCheapBendPos(p, -0.1);
 //    p = opTwistPos(p, 0.2);
@@ -211,9 +211,9 @@ float sceneSDF(vec3 p)
 //    scene = opSmoothUnion(scene, sceneSDFInner(p), uSmoothK);
      scene = sceneSDFInner(p);
 
-//    scene = opSmoothUnion(scene,sceneSDFInner(
-//        p * vec3(-1, 1, 1)
-//    ), uSmoothK);
+    scene = opSmoothUnion(scene,sceneSDFInner(
+        p * vec3(-1, -1, -1)
+    ), uSmoothK);
 //
 //    scene = opSmoothUnion(scene,sceneSDFInner(
 //        p * vec3(-1, 1, -1)
@@ -227,6 +227,10 @@ float sceneSDF(vec3 p)
 //    p.x = r * cos(theta);
 //    p.z = r * sin(theta);
 //    scene = opSmoothUnion(scene, sceneSDFInner(p), uSmoothK);
+
+
+    float block = sdBox(p - vec3(0, 0, -16), vec3(30, 20, 8));
+    scene = opSmoothUnion(scene, block, uSmoothK);
 
     return scene;
 }
